@@ -37,6 +37,18 @@ from sklearn.metrics import explained_variance_score, mean_poisson_deviance, mea
 from sklearn.metrics import r2_score
 from sklearn.metrics import max_error
 
+def generate_signals(self):
+    self.calculate_moving_averages()
+    signals = pd.DataFrame(index=self.data.index)
+    signals['signal'] = 0.0
+
+    # Create signals
+    signals['signal'][self.short_window:] = np.where(self.data['short_mavg'][self.short_window:] > self.data['long_mavg'][self.short_window:], 1.0, 0.0)   
+
+    # Generate trading orders
+    signals['positions'] = signals['signal'].diff()
+
+
 #%matplotlib inline
 plt.style.use("ggplot")
 
@@ -224,11 +236,13 @@ dataX = pd.read_csv('SPY.csv')
 dataY = pd.read_csv('SPY.csv')
 dataX.info()
 dataX.head()
-start_date = '2020-01-01'
-end_date = '2021-11-29'
+dataX['Date'] = pd.to_datetime(dataX['Date'])
+dataY['Date'] = pd.to_datetime(dataY['Date'])
 
-start = '2018-01-01'
-end = '2020-01-01'
+start_date = pd.to_datetime('2020-01-01')
+end_date = pd.to_datetime('2021-11-29')
+start = pd.to_datetime('2018-01-01')
+end = pd.to_datetime('2020-01-01')
 
 fill = (dataX['Date']>=start_date) & (dataX['Date']<=end_date)
 dataX = dataX.loc[fill]
@@ -238,28 +252,28 @@ dataY = dataY.loc[fill2]
 dataY
 dataX.describe()
 dataY.describe()
-sns_plot = sns.distplot(dataX['Close'])
-sns_plot2 = sns.distplot(dataY['Close'])
+sns_plot = sns.histplot(dataX['Close'])
+sns_plot2 = sns.histplot(dataY['Close'])
 fig, ax = plt.subplots(4, 2, figsize = (15, 13))
 sns.boxplot(x= dataX['Close'], ax = ax[0,0])
-sns.distplot(dataX['Close'], ax = ax[0,1])
+sns.histplot(dataX['Close'], ax = ax[0,1])
 sns.boxplot(x= dataX['Open'], ax = ax[1,0])
-sns.distplot(dataX['Open'], ax = ax[1,1])
+sns.histplot(dataX['Open'], ax = ax[1,1])
 sns.boxplot(x= dataX['High'], ax = ax[2,0])
-sns.distplot(dataX['High'], ax = ax[2,1])
+sns.histplot(dataX['High'], ax = ax[2,1])
 sns.boxplot(x= dataX['Low'], ax = ax[3,0])
-sns.distplot(dataX['Low'], ax = ax[3,1])
+sns.histplot(dataX['Low'], ax = ax[3,1])
 plt.tight_layout()
 
 fig, ax = plt.subplots(4, 2, figsize = (15, 13))
 sns.boxplot(x= dataY["Close"], ax = ax[0,0])
-sns.distplot(dataY['Close'], ax = ax[0,1])
+sns.histplot(dataY['Close'], ax = ax[0,1])
 sns.boxplot(x= dataY["Open"], ax = ax[1,0])
-sns.distplot(dataY['Open'], ax = ax[1,1])
+sns.histplot(dataY['Open'], ax = ax[1,1])
 sns.boxplot(x= dataY["High"], ax = ax[2,0])
-sns.distplot(dataY['High'], ax = ax[2,1])
+sns.histplot(dataY['High'], ax = ax[2,1])
 sns.boxplot(x= dataY["Low"], ax = ax[3,0])
-sns.distplot(dataY['Low'], ax = ax[3,1])
+sns.histplot(dataY['Low'], ax = ax[3,1])
 plt.tight_layout()
 
 #heatmaps
@@ -279,12 +293,18 @@ dataX = pd.read_csv('SPY.csv')
 dataY = pd.read_csv('SPY.csv')
 dataX.info()
 
-start_date = '2020-01-01'
-end_date = '2021-11-29'
+dataX['Date'] = pd.to_datetime(dataX['Date'])
+dataY['Date'] = pd.to_datetime(dataY['Date'])
 
-start = '2018-01-01'
-end = '2020-01-01'
+start_date = pd.to_datetime('2020-01-01')
+end_date = pd.to_datetime('2021-11-29')
+start = pd.to_datetime('2018-01-01')
+end = pd.to_datetime('2020-01-01')
 
+fill = (dataX['Date'] >= start_date) & (dataX['Date'] <= end_date)
+dataX = dataX.loc[fill]
+fill2 = (dataY['Date'] >= start) & (dataY['Date'] <= end)
+dataY = dataY.loc[fill2]
 fill = (dataX['Date']>=start_date) & (dataX['Date']<=end_date)
 dataX = dataX.loc[fill]
 dataX
@@ -329,4 +349,3 @@ sns.heatmap(dataY.corr(),cmap=plt.cm.Blues,annot=True)
 plt.title('Heatmap displaying the relationship between the features of the data (Before COVID)',
          fontsize=13)
 plt.show()
-
