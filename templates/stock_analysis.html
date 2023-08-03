@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Stock Analysis</h1>
+    {% for plot_path in plot_paths %}
+        <img src="{{ plot_path }}" alt="Plot">
+    {% endfor %}
+{% endblock %}
