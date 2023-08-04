@@ -3,6 +3,7 @@ from django.http import HttpResponse
 import plotting
 import numpy as np # linear algebra
 import pandas as pd
+import plotly.express as px
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -54,10 +55,13 @@ def stock_analysis(request):
     data.reset_index(drop=True, inplace=True)
     #data.fillna(data.mean(), inplace=True)
     #data.head()
-
+    images_dir = os.path.join('static', 'images')
+    os.makedirs(images_dir, exist_ok=True)
+    # List to store the paths to the images
+    plot_paths = []
+    
     data.plot(legend=True,subplots=True, figsize = (12, 6))
     plt.show()
-
 
     #data['Close'].plot(legend=True, figsize = (12, 6))
     #plt.show()
@@ -78,6 +82,12 @@ def stock_analysis(request):
     data['Daily Return'] = data['Close'].pct_change()
     # plot the daily return percentage
     data['Daily Return'].plot(figsize=(12,5),legend=True,linestyle=':',marker='o')
+    plot_path = os.path.join(images_dir, 'daily_return_1.png')
+    # Example of saving a plot
+    plot_path = os.path.join(images_dir, 'daily_return_2.png') #return from zero up and down -1 to 1
+    data['Daily Return'].plot(figsize=(12,5),legend=True,linestyle=':',marker='o')
+    plt.savefig(plot_path)
+    plot_paths.append(plot_path)
     plt.show()
 
     sns.displot(data['Daily Return'].dropna(),bins=100,color='green')
@@ -106,8 +116,11 @@ def stock_analysis(request):
     plt.xlabel("Timestamp")
     plt.ylabel("Closing price")
     df = data
-    print(df)
-
+    #print(df)
+    plot_path = os.path.join(images_dir, 'daily_return_3.png') #includes cols_plots
+    data['Daily Return'].plot(figsize=(12,5),legend=True,linestyle=':',marker='o')
+    plt.savefig(plot_path)
+    plot_paths.append(plot_path)
     data.isnull().sum()
     cols_plot = ['Open', 'High', 'Low','Close']
     axes = data[cols_plot].plot(marker='.', alpha=0.5, linestyle='None', figsize=(11, 9), subplots=True)
@@ -344,7 +357,7 @@ def stock_analysis(request):
             fontsize=13)
     plt.show()
     plot_paths = []
-    for i, plot in enumerate(plots): # Assuming 'plots' is a list of your plot objects
+    for i, plot in enumerate(plot): # Assuming 'plots' is a list of your plot objects
         plot_path = os.path.join('static', 'images', f'plot_{i}.png')
         plot.savefig(plot_path)
         plot_paths.append(plot_path)
