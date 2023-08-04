@@ -41,312 +41,345 @@ from sklearn.metrics import r2_score,mean_squared_error
 from sklearn.metrics import explained_variance_score, mean_poisson_deviance, mean_gamma_deviance
 from sklearn.metrics import r2_score
 from sklearn.metrics import max_error
+import sys
+import pandas as pd
+import plotly.express as px
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEnginePage
 
-def stock_analysis(request):
-    # Your existing code for reading and processing the data
-    data = pd.read_csv('SPY.csv')
-    data.head()
-    data.info()
-    data.describe()
-    data.isnull().sum()
-    data.reset_index(drop=True, inplace=True)
-    #data.fillna(data.mean(), inplace=True)
-    #data.head()
-
-    data.plot(legend=True,subplots=True, figsize = (12, 6))
-    plt.show()
+import sys
+import plotly.express as px
 
 
-    #data['Close'].plot(legend=True, figsize = (12, 6))
-    #plt.show()
-    #data['Volume'].plot(legend=True,figsize=(12,7))
-    #plt.show()
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
 
-    data.shape
-    data.size
-    data.describe(include='all').T
-    data.dtypes
-    data.nunique()
-    ma_day = [10,50,100]
+        # Read and process the data
+        data = pd.read_csv('SPY.csv')
+        data.head()
+        data.info()
+        data.describe()
+        data.isnull().sum()
+        data.reset_index(drop=True, inplace=True)
+        #data.fillna(data.mean(), inplace=True)
+        #data.head()
 
-    for ma in ma_day:
-        column_name = "MA for %s days" %(str(ma))
-        data[column_name]=pd.DataFrame.rolling(data['Close'],ma).mean()
+        data.plot(legend=True,subplots=True, figsize = (12, 6))
+        plt.show()
 
-    data['Daily Return'] = data['Close'].pct_change()
-    # plot the daily return percentage
-    data['Daily Return'].plot(figsize=(12,5),legend=True,linestyle=':',marker='o')
-    plt.show()
 
-    sns.displot(data['Daily Return'].dropna(),bins=100,color='green')
-    plt.show()
+        #data['Close'].plot(legend=True, figsize = (12, 6))
+        #plt.show()
+        #data['Volume'].plot(legend=True,figsize=(12,7))
+        #plt.show()
 
-    date=pd.DataFrame(data['Date'])
-    closing_df1 = pd.DataFrame(data['Close'])
-    close1  = closing_df1.rename(columns={"Close": "data_close"})
-    close2=pd.concat([date,close1],axis=1)
-    close2.head()
+        data.shape
+        data.size
+        data.describe(include='all').T
+        data.dtypes
+        data.nunique()
+        ma_day = [10,50,100]
 
-    data.reset_index(drop=True, inplace=True)
-    #data.fillna(data.mean(), inplace=True)
-    data.head()
+        for ma in ma_day:
+            column_name = "MA for %s days" %(str(ma))
+            data[column_name]=pd.DataFrame.rolling(data['Close'],ma).mean()
 
-    data.nunique()
+        data['Daily Return'] = data['Close'].pct_change()
+        # plot the daily return percentage
+        data['Daily Return'].plot(figsize=(12,5),legend=True,linestyle=':',marker='o')
+        plt.show()
 
-    data.sort_index(axis=1,ascending=True)
+        sns.displot(data['Daily Return'].dropna(),bins=100,color='green')
+        plt.show()
 
-    cols_plot = ['Open', 'High', 'Low','Close','Volume','MA for 10 days','MA for 50 days','MA for 100 days','Daily Return']
-    axes = data[cols_plot].plot(marker='.', alpha=0.7, linestyle='None', figsize=(11, 9), subplots=True)
-    for ax in axes:
-        ax.set_ylabel('Daily trade')
+        date=pd.DataFrame(data['Date'])
+        closing_df1 = pd.DataFrame(data['Close'])
+        close1  = closing_df1.rename(columns={"Close": "data_close"})
+        close2=pd.concat([date,close1],axis=1)
+        close2.head()
 
-    plt.plot(data['Close'], label="Close price")
-    plt.xlabel("Timestamp")
-    plt.ylabel("Closing price")
-    df = data
-    print(df)
+        data.reset_index(drop=True, inplace=True)
+        #data.fillna(data.mean(), inplace=True)
+        data.head()
 
-    data.isnull().sum()
-    cols_plot = ['Open', 'High', 'Low','Close']
-    axes = data[cols_plot].plot(marker='.', alpha=0.5, linestyle='None', figsize=(11, 9), subplots=True)
-    for ax in axes:
-        ax.set_ylabel('Daily trade')
+        data.nunique()
 
-    plt.plot(data['Close'], label="Close price")
-    plt.xlabel("Timestamp")
-    plt.ylabel("Closing price")
-    df = data
-    print(df)
+        data.sort_index(axis=1,ascending=True)
 
-    df.describe().transpose()
+        cols_plot = ['Open', 'High', 'Low','Close','Volume','MA for 10 days','MA for 50 days','MA for 100 days','Daily Return']
+        axes = data[cols_plot].plot(marker='.', alpha=0.7, linestyle='None', figsize=(11, 9), subplots=True)
+        for ax in axes:
+            ax.set_ylabel('Daily trade')
 
-    X = []
-    Y = []
-    window_size=100
-    for i in range(1 , len(df) - window_size -1 , 1):
-        first = df.iloc[i,2]
-        temp = []
-        temp2 = []
-        for j in range(window_size):
-            temp.append((df.iloc[i + j, 2] - first) / first)
-        temp2.append((df.iloc[i + window_size, 2] - first) / first)
-        X.append(np.array(temp).reshape(100, 1))
-        Y.append(np.array(temp2).reshape(1, 1))
+        plt.plot(data['Close'], label="Close price")
+        plt.xlabel("Timestamp")
+        plt.ylabel("Closing price")
+        df = data
+        print(df)
 
-    x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=True)
+        data.isnull().sum()
+        cols_plot = ['Open', 'High', 'Low','Close']
+        axes = data[cols_plot].plot(marker='.', alpha=0.5, linestyle='None', figsize=(11, 9), subplots=True)
+        for ax in axes:
+            ax.set_ylabel('Daily trade')
 
-    train_X = np.array(x_train)
-    test_X = np.array(x_test)
-    train_Y = np.array(y_train)
-    test_Y = np.array(y_test)
+        plt.plot(data['Close'], label="Close price")
+        plt.xlabel("Timestamp")
+        plt.ylabel("Closing price")
+        df = data
+        print(df)
 
-    train_X = train_X.reshape(train_X.shape[0],1,100,1)
-    test_X = test_X.reshape(test_X.shape[0],1,100,1)
+        df.describe().transpose()
 
-    print(len(train_X))
-    print(len(test_X))
+        X = []
+        Y = []
+        window_size=100
+        for i in range(1 , len(df) - window_size -1 , 1):
+            first = df.iloc[i,2]
+            temp = []
+            temp2 = []
+            for j in range(window_size):
+                temp.append((df.iloc[i + j, 2] - first) / first)
+            temp2.append((df.iloc[i + window_size, 2] - first) / first)
+            X.append(np.array(temp).reshape(100, 1))
+            Y.append(np.array(temp2).reshape(1, 1))
 
-    model = tf.keras.Sequential()
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=True)
 
-    # Creating the Neural Network model here...
-    # CNN layers
-    model.add(TimeDistributed(Conv1D(64, kernel_size=3, activation='relu', input_shape=(None, 100, 1))))
-    model.add(TimeDistributed(MaxPooling1D(2)))
-    model.add(TimeDistributed(Conv1D(128, kernel_size=3, activation='relu')))
-    model.add(TimeDistributed(MaxPooling1D(2)))
-    model.add(TimeDistributed(Conv1D(64, kernel_size=3, activation='relu')))
-    model.add(TimeDistributed(MaxPooling1D(2)))
-    model.add(TimeDistributed(Flatten()))
-    # model.add(Dense(5, kernel_regularizer=L2(0.01)))
+        train_X = np.array(x_train)
+        test_X = np.array(x_test)
+        train_Y = np.array(y_train)
+        test_Y = np.array(y_test)
 
-    # LSTM layers
-    model.add(Bidirectional(LSTM(100, return_sequences=True)))
-    model.add(Dropout(0.5))
-    model.add(Bidirectional(LSTM(100, return_sequences=False)))
-    model.add(Dropout(0.5))
+        train_X = train_X.reshape(train_X.shape[0],1,100,1)
+        test_X = test_X.reshape(test_X.shape[0],1,100,1)
 
-    #Final layers
-    model.add(Dense(1, activation='linear'))
-    model.compile(optimizer='adam', loss='mse', metrics=['mse', 'mae'])
+        print(len(train_X))
+        print(len(test_X))
 
-    history = model.fit(train_X, train_Y, validation_data=(test_X,test_Y), epochs=40,batch_size=40, verbose=1, shuffle =True)
+        model = tf.keras.Sequential()
 
-    plt.plot(history.history['loss'], label='train loss')
-    plt.plot(history.history['val_loss'], label='val loss')
-    plt.xlabel("epoch")
-    plt.ylabel("Loss")
-    plt.legend()
+        # Creating the Neural Network model here...
+        # CNN layers
+        model.add(TimeDistributed(Conv1D(64, kernel_size=3, activation='relu', input_shape=(None, 100, 1))))
+        model.add(TimeDistributed(MaxPooling1D(2)))
+        model.add(TimeDistributed(Conv1D(128, kernel_size=3, activation='relu')))
+        model.add(TimeDistributed(MaxPooling1D(2)))
+        model.add(TimeDistributed(Conv1D(64, kernel_size=3, activation='relu')))
+        model.add(TimeDistributed(MaxPooling1D(2)))
+        model.add(TimeDistributed(Flatten()))
+        # model.add(Dense(5, kernel_regularizer=L2(0.01)))
 
-    plt.plot(history.history['mse'], label='train mse')
-    plt.plot(history.history['val_mse'], label='val mse')
-    plt.xlabel("epoch")
-    plt.ylabel("Loss")
-    plt.legend()
+        # LSTM layers
+        model.add(Bidirectional(LSTM(100, return_sequences=True)))
+        model.add(Dropout(0.5))
+        model.add(Bidirectional(LSTM(100, return_sequences=False)))
+        model.add(Dropout(0.5))
 
-    plt.plot(history.history['mae'], label='train mae')
-    plt.plot(history.history['val_mae'], label='val mae')
-    plt.xlabel("epoch")
-    plt.ylabel("Loss")
-    plt.legend()
-    print(model.summary())
-    #plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=True)
+        #Final layers
+        model.add(Dense(1, activation='linear'))
+        model.compile(optimizer='adam', loss='mse', metrics=['mse', 'mae'])
 
-    model.evaluate(test_X, test_Y)
+        history = model.fit(train_X, train_Y, validation_data=(test_X,test_Y), epochs=40,batch_size=40, verbose=1, shuffle =True)
 
-    # predict probabilities for test set
-    yhat_probs = model.predict(test_X, verbose=0)
-    # reduce to 1d array
-    yhat_probs = yhat_probs[:, 0]
+        plt.plot(history.history['loss'], label='train loss')
+        plt.plot(history.history['val_loss'], label='val loss')
+        plt.xlabel("epoch")
+        plt.ylabel("Loss")
+        plt.legend()
 
-    var = explained_variance_score(test_Y.reshape(-1,1), yhat_probs)
-    print('Variance: %f' % var)
+        plt.plot(history.history['mse'], label='train mse')
+        plt.plot(history.history['val_mse'], label='val mse')
+        plt.xlabel("epoch")
+        plt.ylabel("Loss")
+        plt.legend()
 
-    r2 = r2_score(test_Y.reshape(-1,1), yhat_probs)
-    print('R2 Score: %f' % var)
+        plt.plot(history.history['mae'], label='train mae')
+        plt.plot(history.history['val_mae'], label='val mae')
+        plt.xlabel("epoch")
+        plt.ylabel("Loss")
+        plt.legend()
+        print(model.summary())
+        #plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=True)
 
-    var2 = max_error(test_Y.reshape(-1,1), yhat_probs)
-    print('Max Error: %f' % var2)
+        model.evaluate(test_X, test_Y)
 
-    predicted  = model.predict(test_X)
-    test_label = test_Y.reshape(-1,1)
-    predicted = np.array(predicted[:,0]).reshape(-1,1)
-    len_t = len(train_X)
-    for j in range(len_t , len_t + len(test_X)):
-        temp = data.iloc[j,3]
-        test_label[j - len_t] = test_label[j - len_t] * temp + temp
-        predicted[j - len_t] = predicted[j - len_t] * temp + temp
-    plt.plot(predicted, color = 'green', label = 'Predicted  Stock Price')
-    plt.plot(test_label, color = 'red', label = 'Real Stock Price')
-    plt.title(' Stock Price Prediction')
-    plt.xlabel('Time')
-    plt.ylabel(' Stock Price')
-    plt.legend()
-    plt.show()
+        # predict probabilities for test set
+        yhat_probs = model.predict(test_X, verbose=0)
+        # reduce to 1d array
+        yhat_probs = yhat_probs[:, 0]
 
-    #Testing phase
-    dataX = pd.read_csv('SPY.csv')
-    dataY = pd.read_csv('SPY.csv')
-    dataX.info()
-    dataX.head()
-    dataX['Date'] = pd.to_datetime(dataX['Date'])
-    dataY['Date'] = pd.to_datetime(dataY['Date'])
+        var = explained_variance_score(test_Y.reshape(-1,1), yhat_probs)
+        print('Variance: %f' % var)
 
-    start_date = pd.to_datetime('2020-01-01')
-    end_date = pd.to_datetime('2021-11-29')
-    start = pd.to_datetime('2018-01-01')
-    end = pd.to_datetime('2020-01-01')
+        r2 = r2_score(test_Y.reshape(-1,1), yhat_probs)
+        print('R2 Score: %f' % var)
 
-    fill = (dataX['Date']>=start_date) & (dataX['Date']<=end_date)
-    dataX = dataX.loc[fill]
-    dataX
-    fill2 = (dataY['Date']>=start) & (dataY['Date']<=end)
-    dataY = dataY.loc[fill2]
-    dataY
-    dataX.describe()
-    dataY.describe()
-    sns_plot = sns.histplot(dataX['Close'])
-    sns_plot2 = sns.histplot(dataY['Close'])
-    fig, ax = plt.subplots(4, 2, figsize = (15, 13))
-    sns.boxplot(x= dataX['Close'], ax = ax[0,0])
-    sns.histplot(dataX['Close'], ax = ax[0,1])
-    sns.boxplot(x= dataX['Open'], ax = ax[1,0])
-    sns.histplot(dataX['Open'], ax = ax[1,1])
-    sns.boxplot(x= dataX['High'], ax = ax[2,0])
-    sns.histplot(dataX['High'], ax = ax[2,1])
-    sns.boxplot(x= dataX['Low'], ax = ax[3,0])
-    sns.histplot(dataX['Low'], ax = ax[3,1])
-    plt.tight_layout()
+        var2 = max_error(test_Y.reshape(-1,1), yhat_probs)
+        print('Max Error: %f' % var2)
 
-    fig, ax = plt.subplots(4, 2, figsize = (15, 13))
-    sns.boxplot(x= dataY["Close"], ax = ax[0,0])
-    sns.histplot(dataY['Close'], ax = ax[0,1])
-    sns.boxplot(x= dataY["Open"], ax = ax[1,0])
-    sns.histplot(dataY['Open'], ax = ax[1,1])
-    sns.boxplot(x= dataY["High"], ax = ax[2,0])
-    sns.histplot(dataY['High'], ax = ax[2,1])
-    sns.boxplot(x= dataY["Low"], ax = ax[3,0])
-    sns.histplot(dataY['Low'], ax = ax[3,1])
-    plt.tight_layout()
+        predicted  = model.predict(test_X)
+        test_label = test_Y.reshape(-1,1)
+        predicted = np.array(predicted[:,0]).reshape(-1,1)
+        len_t = len(train_X)
+        for j in range(len_t , len_t + len(test_X)):
+            temp = data.iloc[j,3]
+            test_label[j - len_t] = test_label[j - len_t] * temp + temp
+            predicted[j - len_t] = predicted[j - len_t] * temp + temp
+        plt.plot(predicted, color = 'green', label = 'Predicted  Stock Price')
+        plt.plot(test_label, color = 'red', label = 'Real Stock Price')
+        plt.title(' Stock Price Prediction')
+        plt.xlabel('Time')
+        plt.ylabel(' Stock Price')
+        plt.legend()
+        plt.show()
 
-    #heatmaps
-    plt.figure(figsize=(10,6))
-    sns.heatmap(dataX.corr(),cmap=plt.cm.Reds,annot=True)
-    plt.title('Heatmap displaying the relationship between the features of the data (During COVID)',
-            fontsize=13)
-    plt.show()
+        #Testing phase
+        dataX = pd.read_csv('SPY.csv')
+        dataY = pd.read_csv('SPY.csv')
+        dataX.info()
+        dataX.head()
+        dataX['Date'] = pd.to_datetime(dataX['Date'])
+        dataY['Date'] = pd.to_datetime(dataY['Date'])
 
-    plt.figure(figsize=(10,6))
-    sns.heatmap(dataY.corr(),cmap=plt.cm.Blues,annot=True)
-    plt.title('Heatmap displaying the relationship between the features of the data (Before COVID)',
-            fontsize=13)
-    plt.show()
+        start_date = pd.to_datetime('2020-01-01')
+        end_date = pd.to_datetime('2021-11-29')
+        start = pd.to_datetime('2018-01-01')
+        end = pd.to_datetime('2020-01-01')
 
-    dataX = pd.read_csv('SPY.csv')
-    dataY = pd.read_csv('SPY.csv')
-    dataX.info()
+        fill = (dataX['Date']>=start_date) & (dataX['Date']<=end_date)
+        dataX = dataX.loc[fill]
+        dataX
+        fill2 = (dataY['Date']>=start) & (dataY['Date']<=end)
+        dataY = dataY.loc[fill2]
+        dataY
+        dataX.describe()
+        dataY.describe()
+        sns_plot = sns.histplot(dataX['Close'])
+        sns_plot2 = sns.histplot(dataY['Close'])
+        fig, ax = plt.subplots(4, 2, figsize = (15, 13))
+        sns.boxplot(x= dataX['Close'], ax = ax[0,0])
+        sns.histplot(dataX['Close'], ax = ax[0,1])
+        sns.boxplot(x= dataX['Open'], ax = ax[1,0])
+        sns.histplot(dataX['Open'], ax = ax[1,1])
+        sns.boxplot(x= dataX['High'], ax = ax[2,0])
+        sns.histplot(dataX['High'], ax = ax[2,1])
+        sns.boxplot(x= dataX['Low'], ax = ax[3,0])
+        sns.histplot(dataX['Low'], ax = ax[3,1])
+        plt.tight_layout()
 
-    dataX['Date'] = pd.to_datetime(dataX['Date'])
-    dataY['Date'] = pd.to_datetime(dataY['Date'])
+        fig, ax = plt.subplots(4, 2, figsize = (15, 13))
+        sns.boxplot(x= dataY["Close"], ax = ax[0,0])
+        sns.histplot(dataY['Close'], ax = ax[0,1])
+        sns.boxplot(x= dataY["Open"], ax = ax[1,0])
+        sns.histplot(dataY['Open'], ax = ax[1,1])
+        sns.boxplot(x= dataY["High"], ax = ax[2,0])
+        sns.histplot(dataY['High'], ax = ax[2,1])
+        sns.boxplot(x= dataY["Low"], ax = ax[3,0])
+        sns.histplot(dataY['Low'], ax = ax[3,1])
+        plt.tight_layout()
 
-    start_date = pd.to_datetime('2020-01-01')
-    end_date = pd.to_datetime('2021-11-29')
-    start = pd.to_datetime('2018-01-01')
-    end = pd.to_datetime('2020-01-01')
+        #heatmaps
+        plt.figure(figsize=(10,6))
+        sns.heatmap(dataX.corr(),cmap=plt.cm.Reds,annot=True)
+        plt.title('Heatmap displaying the relationship between the features of the data (During COVID)',
+                fontsize=13)
+        plt.show()
 
-    fill = (dataX['Date'] >= start_date) & (dataX['Date'] <= end_date)
-    dataX = dataX.loc[fill]
-    fill2 = (dataY['Date'] >= start) & (dataY['Date'] <= end)
-    dataY = dataY.loc[fill2]
-    fill = (dataX['Date']>=start_date) & (dataX['Date']<=end_date)
-    dataX = dataX.loc[fill]
-    dataX
-    fill2 = (dataY['Date']>=start) & (dataY['Date']<=end)
-    dataY = dataY.loc[fill2]
-    dataY
-    dataX.describe()
-    dataY.describe()
-    sns_plot = sns.distplot(dataX['Close'])
-    sns_plot2 = sns.distplot(dataY['Close'])
+        plt.figure(figsize=(10,6))
+        sns.heatmap(dataY.corr(),cmap=plt.cm.Blues,annot=True)
+        plt.title('Heatmap displaying the relationship between the features of the data (Before COVID)',
+                fontsize=13)
+        plt.show()
 
-    fig, ax = plt.subplots(4, 2, figsize = (15, 13))
-    sns.boxplot(x= dataX["Close"], ax = ax[0,0])
-    sns.distplot(dataX['Close'], ax = ax[0,1])
-    sns.boxplot(x= dataX["Open"], ax = ax[1,0])
-    sns.distplot(dataX['Open'], ax = ax[1,1])
-    sns.boxplot(x= dataX["High"], ax = ax[2,0])
-    sns.distplot(dataX['High'], ax = ax[2,1])
-    sns.boxplot(x= dataX["Low"], ax = ax[3,0])
-    sns.distplot(dataX['Low'], ax = ax[3,1])
-    plt.tight_layout()
+        dataX = pd.read_csv('SPY.csv')
+        dataY = pd.read_csv('SPY.csv')
+        dataX.info()
 
-    fig, ax = plt.subplots(4, 2, figsize = (15, 13))
-    sns.boxplot(x= dataY["Close"], ax = ax[0,0])
-    sns.distplot(dataY['Close'], ax = ax[0,1])
-    sns.boxplot(x= dataY["Open"], ax = ax[1,0])
-    sns.distplot(dataY['Open'], ax = ax[1,1])
-    sns.boxplot(x= dataY["High"], ax = ax[2,0])
-    sns.distplot(dataY['High'], ax = ax[2,1])
-    sns.boxplot(x= dataY["Low"], ax = ax[3,0])
-    sns.distplot(dataY['Low'], ax = ax[3,1])
-    plt.tight_layout()
+        dataX['Date'] = pd.to_datetime(dataX['Date'])
+        dataY['Date'] = pd.to_datetime(dataY['Date'])
 
-    plt.figure(figsize=(10,6))
-    sns.heatmap(dataX.corr(),cmap=plt.cm.Reds,annot=True)
-    plt.title('Heatmap displaying the relationship between the features of the data (During COVID)',
-            fontsize=13)
-    plt.show()
+        start_date = pd.to_datetime('2020-01-01')
+        end_date = pd.to_datetime('2021-11-29')
+        start = pd.to_datetime('2018-01-01')
+        end = pd.to_datetime('2020-01-01')
 
-    plt.figure(figsize=(10,6))
-    sns.heatmap(dataY.corr(),cmap=plt.cm.Blues,annot=True)
-    plt.title('Heatmap displaying the relationship between the features of the data (Before COVID)',
-            fontsize=13)
-    plt.show()
-    plot_paths = []
-    for i, plot in enumerate(plots): # Assuming 'plots' is a list of your plot objects
-        plot_path = os.path.join('static', 'images', f'plot_{i}.png')
-        plot.savefig(plot_path)
-        plot_paths.append(plot_path)
+        fill = (dataX['Date'] >= start_date) & (dataX['Date'] <= end_date)
+        dataX = dataX.loc[fill]
+        fill2 = (dataY['Date'] >= start) & (dataY['Date'] <= end)
+        dataY = dataY.loc[fill2]
+        fill = (dataX['Date']>=start_date) & (dataX['Date']<=end_date)
+        dataX = dataX.loc[fill]
+        dataX
+        fill2 = (dataY['Date']>=start) & (dataY['Date']<=end)
+        dataY = dataY.loc[fill2]
+        dataY
+        dataX.describe()
+        dataY.describe()
+        sns_plot = sns.distplot(dataX['Close'])
+        sns_plot2 = sns.distplot(dataY['Close'])
 
-    # Render the HTML template and pass the paths to the images
-    context = {'plot_paths': plot_paths}
-    return render(request, 'stock_analysis.html', context)
+        fig, ax = plt.subplots(4, 2, figsize = (15, 13))
+        sns.boxplot(x= dataX["Close"], ax = ax[0,0])
+        sns.distplot(dataX['Close'], ax = ax[0,1])
+        sns.boxplot(x= dataX["Open"], ax = ax[1,0])
+        sns.distplot(dataX['Open'], ax = ax[1,1])
+        sns.boxplot(x= dataX["High"], ax = ax[2,0])
+        sns.distplot(dataX['High'], ax = ax[2,1])
+        sns.boxplot(x= dataX["Low"], ax = ax[3,0])
+        sns.distplot(dataX['Low'], ax = ax[3,1])
+        plt.tight_layout()
+
+        fig, ax = plt.subplots(4, 2, figsize = (15, 13))
+        sns.boxplot(x= dataY["Close"], ax = ax[0,0])
+        sns.distplot(dataY['Close'], ax = ax[0,1])
+        sns.boxplot(x= dataY["Open"], ax = ax[1,0])
+        sns.distplot(dataY['Open'], ax = ax[1,1])
+        sns.boxplot(x= dataY["High"], ax = ax[2,0])
+        sns.distplot(dataY['High'], ax = ax[2,1])
+        sns.boxplot(x= dataY["Low"], ax = ax[3,0])
+        sns.distplot(dataY['Low'], ax = ax[3,1])
+        plt.tight_layout()
+
+        plt.figure(figsize=(10,6))
+        sns.heatmap(dataX.corr(),cmap=plt.cm.Reds,annot=True)
+        plt.title('Heatmap displaying the relationship between the features of the data (During COVID)',
+                fontsize=13)
+        plt.show()
+
+        plt.figure(figsize=(10,6))
+        sns.heatmap(dataY.corr(),cmap=plt.cm.Blues,annot=True)
+        plt.title('Heatmap displaying the relationship between the features of the data (Before COVID)',
+                fontsize=13)
+        plt.show()
+
+        fig = px.line(data, x='Date', y='Daily Return', title='Daily Return Percentage')
+
+            # Convert the Plotly figure to HTML
+        fig_html = fig.to_html(full_html=False)
+
+            # Create a web view to display the Plotly figure
+        web_view = QWebEngineView()
+        web_view.setHtml(fig_html)
+
+            # Create a layout and add the web view
+        layout = QVBoxLayout()
+        layout.addWidget(web_view)
+
+            # Create a container widget and set it as the central widget
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
+
+            # Set the window title and size
+        self.setWindowTitle('Stock Analysis')
+        self.resize(800, 600)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
