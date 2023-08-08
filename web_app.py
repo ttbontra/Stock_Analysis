@@ -56,7 +56,7 @@ app = dash.Dash(__name__)
 
 # Define the app layout
 app.layout = html.Div([
-    dcc.Input(id='ticker-input', type='text', placeholder='Enter Ticker Symbol'),
+    dcc.Input(id='ticker-input', type='text', placeholder='Enter Ticker Symbol', style={'display': 'flex', 'justifyContent': 'center', 'width': '40%', 'padding': '12px', }),
     dcc.Dropdown(
         id='timeframe-dropdown',
         options=[
@@ -68,12 +68,14 @@ app.layout = html.Div([
             {'label': '10 Years', 'value': '120mo'},
             {'label': '20 Years', 'value': '240mo'}
         ],
-        value='250mo'
+        value='250mo',
+        style={'width': '40%'}
     ),
     html.Button('Fetch Data', id='fetch-button'),
     html.Div(id='output-div'),
-    html.Button('Train and Forecast', id='train-forecast-button', n_clicks=0),
+    #html.Button('Train and Forecast', id='train-forecast-button', n_clicks=0),
     dcc.Graph(id='ohlc'),
+    html.Button('Train and Forecast', id='train-forecast-button', n_clicks=0),
     dcc.Graph(id='daily-return'),
     dcc.Graph(id='histogram'),
     dcc.Graph(id='box-plots'),
