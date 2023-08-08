@@ -54,8 +54,8 @@ from forecast import train_model, forecast
 data = pd.read_csv('SPY.csv')
 data.dropna(inplace=True)
 data['Daily Return'] = data['Close'].pct_change()
-dataX = pd.read_csv('SPY.csv')
-dataY = pd.read_csv('SPY.csv')
+dataX = data
+dataY = data
 dataX['Date'] = pd.to_datetime(dataX['Date'])
 dataY['Date'] = pd.to_datetime(dataY['Date'])
 
@@ -81,8 +81,27 @@ fig_candlestick.add_trace(
     ),
     row=2, col=1
 )
-
 fig_candlestick.update_layout(height=500, title_text="Candlestick Chart with Rangeslider")
+
+fig_box_plots = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
+fig_box_plots.add_trace(
+    go.Box( 
+        y=data["Open"],
+        name="Open Box Plot",
+        boxmean=True, 
+        ),
+    row=1, col=1
+)
+
+fig_box_plots.add_trace(
+    go.Box( 
+        y=data["High"],
+        name="High Box Plot",
+        boxmean=True, 
+        ),
+    row=1, col=2
+)
+fig_box_plots.update_layout(height=500, title_text="Box Plots")
 
 # Box Plots and Distribution Plots for dataX
 fig_dataX_close_box = px.box(dataX, y="Close", title="Close Box Plot")
@@ -123,14 +142,10 @@ app.layout = html.Div([
         id='histogram',
         figure=px.histogram(data, x='Daily Return', nbins=100, color_discrete_sequence=['green'])
     ),
-    # Multiple line plots for Open, High, Low, Close
 
-    dcc.Graph(figure=fig_dataX_close_box),
+    dcc.Graph(figure=fig_box_plots),
     dcc.Graph(figure=fig_dataX_close_hist),
-    # ... Add other figures for Open, High, Low
-    dcc.Graph(figure=fig_dataY_close_box),
     dcc.Graph(figure=fig_dataY_close_hist),
-    # ... Add other figures for Open, High, Low
     dcc.Graph(figure=fig_dataX_heatmap),
     dcc.Graph(figure=fig_dataY_heatmap)
 ])
