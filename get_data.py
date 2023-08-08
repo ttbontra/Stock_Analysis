@@ -1,32 +1,26 @@
 import pandas as pd
-import yfinance
+import yfinance as yf
 
-# Load the CSV file with the list of tickers
-tickers_df = pd.read_csv('tickers.csv')
-
-# Iterate over the tickers
-for ticker_symbol in tickers_df['tickers']:  # assuming 'ticker' is the column name containing the tickers
+def fetch_data(ticker_symbol, timeframe='1y'):
+    """
+    Fetches data for the given ticker_symbol and timeframe.
+    
+    Args:
+    - ticker_symbol (str): The stock ticker symbol.
+    - timeframe (str): The timeframe for which data is to be fetched. Default is '1y' (1 year).
+    
+    Returns:
+    - pd.DataFrame: A DataFrame containing the stock data.
+    """
     try:
-        ticker = yfinance.Ticker(ticker_symbol)
-        df = ticker.history(period='250mo')
+        ticker = yf.Ticker(ticker_symbol)
+        df = ticker.history(period=timeframe)
 
-        # Drop the 'Dividends' and 'Stock Splits' columns
-        df = df.drop(columns=['Dividends', 'Stock Splits'])
+        # Drop the 'Dividends' and 'Stock Splits' columns if they exist
+        df = df.drop(columns=[col for col in ['Dividends', 'Stock Splits'] if col in df.columns])
 
-        # Save to a CSV file
-        df.reset_index().to_csv(f'etfs/{ticker_symbol}_history.csv', index=False)
+        return df
 
-        print(f"Data fetched for {ticker_symbol}")
     except Exception as e:
         print(f"Error fetching data for {ticker_symbol}: {e}")
-
-#ticker_symbol = 'AAPL'
-#ticker = yfinance.Ticker(ticker_symbol)
-#df = ticker.history(period = '250mo') #36 works can try more
-# Drop the 'Dividends' and 'Capital Gains' columns
-#df = df.drop(columns=['Dividends', 'Stock Splits']) #, 'Capital Gains' can be added back in later
-
-# Save to a CSV file
-#df.reset_index().to_csv(f'{ticker_symbol}_history.csv', index=False)
-
-print(df)
+        return None
