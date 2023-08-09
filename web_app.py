@@ -48,7 +48,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPr
 from PyQt5.QtCore import QUrl, QThread, pyqtSignal
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
-from forecast import train_model, forecast
+from forecast import train_and_forecast
 from get_data import fetch_data
 
 # Create the Dash app
@@ -82,7 +82,8 @@ app.layout = html.Div([
     dcc.Graph(id='dataX-close-hist'),
     dcc.Graph(id='dataY-close-hist'),
     dcc.Graph(id='dataX-heatmap'),
-    dcc.Graph(id='dataY-heatmap')
+    dcc.Graph(id='dataY-heatmap'),
+    dcc.Graph(id='forecast-graph'),
 ])
 
 @app.callback(
@@ -94,15 +95,65 @@ app.layout = html.Div([
      Output('dataY-close-hist', 'figure'),
      Output('dataX-heatmap', 'figure'),
      Output('dataY-heatmap', 'figure'),
+     Output('forecast-graph', 'figure'),
      Output('output-div', 'children')],
-    [Input('fetch-button', 'n_clicks')],
+    [Input('fetch-button', 'n_clicks'),
+     Input('train-forecast-button', 'n_clicks')],
     [dash.dependencies.State('ticker-input', 'value'),
      dash.dependencies.State('timeframe-dropdown', 'value')]
 )
-def update_output(n_clicks, ticker_value, timeframe_value):
+def update_graphs(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_value):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == 'fetch-button' and ticker_value:
+        return fetch_data_and_update_graphs(ticker_value, timeframe_value)
+    elif button_id == 'train-forecast-button' and ticker_value:
+        return handle_train_forecast_button_click(n_clicks_train, ticker_value)
+    else:
+        return dash.no_update
+
+def update_forecast(n_clicks_train, ticker_value):
+    if n_clicks_train and ticker_value:  # Ensure that ticker_value is not None or empty
+        x_actual, actual_prices, x_predicted, predicted_prices = train_and_forecast(ticker_value)
+        
+        # Create the figure using the returned data
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=x_actual, y=actual_prices, mode='lines', name='Actual Prices'))
+        fig.add_trace(go.Scatter(x=x_predicted, y=predicted_prices, mode='lines', name='Predicted Prices'))
+        
+        return fig, f"Forecast generated for {ticker_value}."
+    return dash.no_update, ""
+
+def handle_fetch_button_click(n_clicks, ticker_value, timeframe_value):
     if n_clicks:
-        data = fetch_data(ticker_value, timeframe_value)
-        if data is not None:
+        print(data.head())
+        return fetch_data_and_update_graphs(ticker_value, timeframe_value)
+    return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, ""
+
+
+
+def handle_train_forecast_button_click(n_clicks, ticker_value):
+    if n_clicks and ticker_value:
+        x_actual, actual_prices, x_predicted, predicted_prices = train_and_forecast(ticker_value)
+        
+        # Create the figure using the returned data
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=x_actual, y=actual_prices, mode='lines', name='Actual Prices'))
+        fig.add_trace(go.Scatter(x=x_predicted, y=predicted_prices, mode='lines', name='Predicted Prices'))
+        
+        return fig, f"Forecast generated for {ticker_value}."
+    return dash.no_update, ""
+
+def fetch_data_and_update_graphs(ticker_value, timeframe_value):
+    data = fetch_data(ticker_value, timeframe_value)
+    print(data.head())
+    if data is not None:
+            data.reset_index(inplace=True)
+            data['Date'] = pd.to_datetime(data['Date'])
             # Preprocess the data
             data.dropna(inplace=True)
             data['Daily Return'] = data['Close'].pct_change()
@@ -147,12 +198,12 @@ def update_output(n_clicks, ticker_value, timeframe_value):
             fig_dataY_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Blues"))
             fig_dataY_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (Before COVID)")
 
-            return fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
-
-        else:
+            return fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, dash.no_update, f"Data fetched for {ticker_value} for the last {timeframe_value}."
+        
+    
+    else:
             return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, f"Error fetching data for {ticker_value}."
 
-    return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, ""
-
+   
 if __name__ == '__main__':
     app.run_server(debug=True)
