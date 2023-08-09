@@ -14,12 +14,11 @@ def train_and_forecast(ticker_symbol):
     # Specify the path to your CSV file
     if stock_data is None:
         return None, None, None, None
-
+    stock_data.reset_index(inplace=True)
     stock_data['Date'] = pd.to_datetime(stock_data['Date'])
 
     # Extract the start date (the earliest date in the 'Date' column)
     start_date = stock_data['Date'].min()
-
     # Extract the end date (the latest date in the 'Date' column)
     end_date = stock_data['Date'].max()
 

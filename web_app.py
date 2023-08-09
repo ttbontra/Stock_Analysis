@@ -108,14 +108,13 @@ def update_graphs(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_value)
         return dash.no_update
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
     if button_id == 'fetch-button' and ticker_value:
         return fetch_data_and_update_graphs(ticker_value, timeframe_value)
     elif button_id == 'train-forecast-button' and ticker_value:
         return handle_train_forecast_button_click(n_clicks_train, ticker_value)
     else:
         return dash.no_update
-
+    
 def update_forecast(n_clicks_train, ticker_value):
     if n_clicks_train and ticker_value:  # Ensure that ticker_value is not None or empty
         x_actual, actual_prices, x_predicted, predicted_prices = train_and_forecast(ticker_value)
@@ -125,12 +124,13 @@ def update_forecast(n_clicks_train, ticker_value):
         fig.add_trace(go.Scatter(x=x_actual, y=actual_prices, mode='lines', name='Actual Prices'))
         fig.add_trace(go.Scatter(x=x_predicted, y=predicted_prices, mode='lines', name='Predicted Prices'))
         
-        return fig, f"Forecast generated for {ticker_value}."
-    return dash.no_update, ""
+        # Return the actual and predicted prices arrays along with the figure
+        return fig, actual_prices, predicted_prices, f"Forecast generated for {ticker_value}."
+    return dash.no_update, dash.no_update, dash.no_update, ""
 
 def handle_fetch_button_click(n_clicks, ticker_value, timeframe_value):
     if n_clicks:
-        print(data.head())
+        #print(data.head())
         return fetch_data_and_update_graphs(ticker_value, timeframe_value)
     return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, ""
 
