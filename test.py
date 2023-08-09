@@ -23,7 +23,7 @@ csv_list = pd.read_csv('tickers.csv')
 #file_path = f'{tickers}_history.csv'
 #tickers = 'QQQ'
 # Load the data from the CSV file
-#stock_data = pd.read_csv('tickers')
+stock_data = pd.read_csv('tickers')
 for file_path in csv_list['tickers']:  # Replace 'file_path' with the actual column name in your CSV
     # Load the data from the CSV file
     stock_data = pd.read_csv(file_path)
@@ -171,13 +171,13 @@ print(test_stock_data_processed.shape)
 x_actual = np.arange(test_stock_data_processed.shape[0])
 x_predicted = np.arange(test_stock_data_processed.shape[0], test_stock_data_processed.shape[0] + predicted_stock_price.shape[0])
 
-plt.figure(figsize=(10, 6))
-plt.plot(x_actual, test_stock_data_processed, color='blue', label=f'Actual {tickers} Stock Price')
-plt.plot(x_predicted, predicted_stock_price, color='red', label=f'Predicted {tickers} Stock Price')
-plt.title(f'{tickers} Stock Price Prediction')
-plt.xlabel('Date')
-plt.ylabel(f'{tickers} Stock Price')
-plt.legend()
-plt.show()
+#plt.figure(figsize=(10, 6))
+#plt.plot(x_actual, test_stock_data_processed, color='blue', label=f'Actual {tickers} Stock Price')
+#plt.plot(x_predicted, predicted_stock_price, color='red', label=f'Predicted {tickers} Stock Price')
+#plt.title(f'{tickers} Stock Price Prediction')
+#plt.xlabel('Date')
+#plt.ylabel(f'{tickers} Stock Price')
+#plt.legend()
+#plt.show()
 
 
