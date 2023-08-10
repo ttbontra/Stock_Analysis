@@ -116,7 +116,8 @@ def combined_callback(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_va
         else:
             raise ValueError("fetch_data_and_update_graphs should return a list of 10 items.")
     elif button_id == 'train-forecast-button' and ticker_value:
-        return handle_train_forecast_button_click(n_clicks_train, ticker_value, timeframe_value)
+        forecast_fig, message = handle_train_forecast_button_click(n_clicks_train, ticker_value, timeframe_value)
+        return [dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, forecast_fig, message]
     else:
         return [dash.no_update] * 10
     
@@ -179,7 +180,10 @@ def update_forecast(n_clicks, ticker_value):
         data = fetch_data(ticker_value)  # Assuming get_data is the function to fetch data
 
         x_actual, actual_prices, x_predicted, predicted_prices = train_and_forecast(ticker_value)
-        
+        print(x_actual)
+        print(actual_prices)
+        print(x_predicted)
+        print(predicted_prices)
         # Create the figure using the returned data
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=x_actual, y=actual_prices, mode='lines', name='Actual Prices'))
@@ -194,20 +198,43 @@ def handle_fetch_button_click(n_clicks, ticker_value, timeframe_value):
         return fetch_data_and_update_graphs(ticker_value, timeframe_value)
     return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, ""
 
+def create_forecast_plot(test_stock_data_processed, predicted_stock_price, tickers):
+    x_actual = np.arange(test_stock_data_processed.shape[0])
+    x_predicted = np.arange(test_stock_data_processed.shape[0], test_stock_data_processed.shape[0] + predicted_stock_price.shape[0])
+
+    # Create a Plotly figure
+    fig = go.Figure()
+
+    # Add actual stock prices to the figure
+    fig.add_trace(go.Scatter(x=x_actual, y=test_stock_data_processed.flatten(), mode='lines', name=f'Actual {tickers} Stock Price'))
+
+    # Add predicted stock prices to the figure
+    fig.add_trace(go.Scatter(x=x_predicted, y=predicted_stock_price.flatten(), mode='lines', name=f'Predicted {tickers} Stock Price'))
+
+    # Set the title and axis labels
+    fig.update_layout(title=f'{tickers} Stock Price Prediction', xaxis_title='Date', yaxis_title=f'{tickers} Stock Price')
+
+    return fig
+
 def handle_train_forecast_button_click(n_clicks, ticker_value, timeframe_value):
     graphs = []
     if n_clicks and ticker_value:
         x_actual, actual_prices, x_predicted, predicted_prices = train_and_forecast(ticker_value)
-        
+        print(x_actual)
+        print(actual_prices)
+        print(x_predicted)
+        print(predicted_prices)
         # Create the figure using the returned data
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_actual, y=actual_prices, mode='lines', name='Actual Prices'))
-        fig.add_trace(go.Scatter(x=x_predicted, y=predicted_prices, mode='lines', name='Predicted Prices'))
+        fig = create_forecast_plot(actual_prices, predicted_prices, ticker_value)
+        #fig = go.Figure()
+        #fig.add_trace(go.Scatter(x=x_actual, y=actual_prices, mode='lines', name='Actual Prices'))
+        #fig.add_trace(go.Scatter(x=x_predicted, y=predicted_prices, mode='lines', name='Predicted Prices'))
         graphs.append(fig)
         other_graphs = generate_graphs_from_data(data, ticker_value, timeframe_value)
         graphs.extend(other_graphs)
-        return other_graphs
-    return [dash.no_update] * 10
+        print(fig)
+        return fig, f"Forecast generated for {ticker_value}."
+    return dash.no_update, ""
 
 def fetch_data_and_update_graphs(ticker_value, timeframe_value):
     data = fetch_data(ticker_value, timeframe_value)
