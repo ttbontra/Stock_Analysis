@@ -75,6 +75,7 @@ app.layout = html.Div([
     html.Div(id='output-div'),
     dcc.Graph(id='ohlc'),
     html.Button('Train and Forecast', id='train-forecast-button', n_clicks=0),
+    dcc.Graph(id='forecast-graph'),
     dcc.Graph(id='daily-return'),
     dcc.Graph(id='histogram'),
     dcc.Graph(id='box-plots'),
@@ -82,19 +83,20 @@ app.layout = html.Div([
     dcc.Graph(id='dataY-close-hist'),
     dcc.Graph(id='dataX-heatmap'),
     dcc.Graph(id='dataY-heatmap'),
-    dcc.Graph(id='forecast-graph'),
+
 ])
 
 @app.callback(
     [Output('ohlc', 'figure'),
      Output('daily-return', 'figure'),
+     Output('forecast-graph', 'figure'),
      Output('histogram', 'figure'),
      Output('box-plots', 'figure'),
      Output('dataX-close-hist', 'figure'),
      Output('dataY-close-hist', 'figure'),
      Output('dataX-heatmap', 'figure'),
      Output('dataY-heatmap', 'figure'),
-     Output('forecast-graph', 'figure'),
+     #Output('forecast-graph', 'figure'),
      Output('output-div', 'children')],
     [Input('fetch-button', 'n_clicks'),
      Input('train-forecast-button', 'n_clicks')],
@@ -151,21 +153,16 @@ def generate_graphs_from_data(data, ticker_value, timeframe_value):
         row=2, col=1
     )
     fig_candlestick.update_layout(height=500, title_text="Candlestick Chart with Rangeslider")
-
     fig_daily_return = px.line(data, x=data.index, y='Daily Return', title='Daily Return', markers=True, line_shape='linear')
     fig_histogram = px.histogram(data, x='Daily Return', nbins=100, color_discrete_sequence=['green'])
-
     fig_box_plots = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
     fig_box_plots.add_trace(go.Box(y=data["Open"], name="Open Box Plot", boxmean=True), row=1, col=1)
     fig_box_plots.add_trace(go.Box(y=data["High"], name="High Box Plot", boxmean=True), row=1, col=2)
     fig_box_plots.update_layout(height=500, title_text="Box Plots")
-
     fig_dataX_close_hist = px.histogram(data, x="Close", title="Close Distribution")
     fig_dataY_close_hist = px.histogram(data, x="Open", title="Open Distribution")
-
     fig_dataX_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Reds"))
     fig_dataX_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (During COVID)")
-
     fig_dataY_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Blues"))
     fig_dataY_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (Before COVID)")
 
@@ -205,10 +202,7 @@ def create_forecast_plot(test_stock_data_processed, predicted_stock_price, ticke
     # Create a Plotly figure
     fig = go.Figure()
 
-    # Add actual stock prices to the figure
     fig.add_trace(go.Scatter(x=x_actual, y=test_stock_data_processed.flatten(), mode='lines', name=f'Actual {tickers} Stock Price'))
-
-    # Add predicted stock prices to the figure
     fig.add_trace(go.Scatter(x=x_predicted, y=predicted_stock_price.flatten(), mode='lines', name=f'Predicted {tickers} Stock Price'))
 
     # Set the title and axis labels

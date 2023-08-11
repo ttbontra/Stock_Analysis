@@ -239,16 +239,19 @@ dataX.head()
 dataX['Date'] = pd.to_datetime(dataX['Date'])
 dataY['Date'] = pd.to_datetime(dataY['Date'])
 
-total_data_len = len(dataX)
+total_data_len = len(data)
 testing_data_len = int(0.25 * total_data_len)
-test_stock_data = dataX.iloc[testing_start_index:]
+
 testing_start_index = total_data_len - testing_data_len
+test_stock_data = data.iloc[testing_start_index:]
 testing_start_date = test_stock_data['Date'].iloc[0]
 testing_end_date = test_stock_data['Date'].iloc[-1]
-#start_date = pd.to_datetime('2020-01-01')
-#end_date = pd.to_datetime('2021-11-29')
-#start = pd.to_datetime('2018-01-01')
-#end = pd.to_datetime('2020-01-01')
+
+# for heatmap
+start_date = pd.to_datetime('2020-01-01')
+end_date = pd.to_datetime('2021-11-29')
+start = pd.to_datetime('2018-01-01')
+end = pd.to_datetime('2020-01-01')
 
 fill = (dataX['Date']>=start_date) & (dataX['Date']<=end_date)
 dataX = dataX.loc[fill]

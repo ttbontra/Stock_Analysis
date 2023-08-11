@@ -1,8 +1,3 @@
-# !pip install tensorflow-gpu==2.0.0-alpha0
-# !pip install pandas-datareader
-# !apt install graphviz
-# !pip install pydot pydot-ng
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -14,11 +9,8 @@ import tensorflow as tf
 from time import time
 from keras.models import load_model
 
-
 # Load or define your model
 model = load_model('stock_prediction.keras')
-#tickers = 'TSLA'
-# Specify the path to your CSV file
 csv_list = pd.read_csv('tickers.csv')
 
 stock_data = pd.read_csv('tickers.csv')
@@ -95,11 +87,8 @@ for file_path in csv_list['tickers']:  # Replace 'file_path' with the actual col
     test_stock_data = stock_data.iloc[testing_start_index:]
     testing_start_date = test_stock_data['Date'].iloc[0]
     testing_end_date = test_stock_data['Date'].iloc[-1]
-    #test_stock_data = stock_data.iloc[testing_start_index:]
-    #testing_start_date = pd.to_datetime('2023-04-15').tz_localize('US/Eastern')
-    #testing_end_date = pd.to_datetime('2023-07-12').tz_localize('US/Eastern')
 
-    #test_stock_data = stock_data[(stock_data['Date'] >= testing_start_date) & (stock_data['Date'] <= testing_end_date)]
+    test_stock_data = stock_data[(stock_data['Date'] >= testing_start_date) & (stock_data['Date'] <= testing_end_date)]
 
     test_stock_data.tail()
 
@@ -123,14 +112,6 @@ for file_path in csv_list['tickers']:  # Replace 'file_path' with the actual col
 
     num_prediction = 30  # Number of future predictions
 
-#plt.figure(figsize=(10, 6))
-#plt.plot(test_stock_data_processed, color='blue', label='Actual Apple Stock Price')
-#plt.plot(predicted_stock_price, color='red', label='Predicted Apple Stock Price')
-#plt.title('SPY Stock Price Prediction')
-#plt.xlabel('Date')
-#plt.ylabel('SPY Stock Price')
-#plt.legend()
-#plt.show()
 
 def predict(num_prediction, model, input_data):
     prediction_list = input_data[-1].reshape(-1)  # Take the last sequence from input_data
@@ -176,14 +157,3 @@ print(test_stock_data_processed.shape)
 
 x_actual = np.arange(test_stock_data_processed.shape[0])
 x_predicted = np.arange(test_stock_data_processed.shape[0], test_stock_data_processed.shape[0] + predicted_stock_price.shape[0])
-
-plt.figure(figsize=(10, 6))
-plt.plot(x_actual, test_stock_data_processed, color='blue', label='Actual Stock Price')
-plt.plot(x_predicted, predicted_stock_price, color='red', label='Predicted Stock Price')
-plt.title('Stock Price Prediction')
-plt.xlabel('Date')
-plt.ylabel('Stock Price')
-plt.legend()
-plt.show()
-
-
