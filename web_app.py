@@ -96,7 +96,6 @@ app.layout = html.Div([
      Output('dataY-close-hist', 'figure'),
      Output('dataX-heatmap', 'figure'),
      Output('dataY-heatmap', 'figure'),
-     #Output('forecast-graph', 'figure'),
      Output('output-div', 'children')],
     [Input('fetch-button', 'n_clicks'),
      Input('train-forecast-button', 'n_clicks')],
@@ -169,8 +168,6 @@ def generate_graphs_from_data(data, ticker_value, timeframe_value):
     # Return all the figures and the message
     return [fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, dash.no_update, f"Data fetched for {ticker_value} for the last {timeframe_value}."]
 
-
-
 def update_forecast(n_clicks, ticker_value):
     if n_clicks and ticker_value:
         # Fetch the data directly
@@ -199,15 +196,11 @@ def create_forecast_plot(test_stock_data_processed, predicted_stock_price, ticke
     x_actual = np.arange(test_stock_data_processed.shape[0])
     x_predicted = np.arange(test_stock_data_processed.shape[0], test_stock_data_processed.shape[0] + predicted_stock_price.shape[0])
 
-    # Create a Plotly figure
+    # Create the figure
     fig = go.Figure()
-
     fig.add_trace(go.Scatter(x=x_actual, y=test_stock_data_processed.flatten(), mode='lines', name=f'Actual {tickers} Stock Price'))
     fig.add_trace(go.Scatter(x=x_predicted, y=predicted_stock_price.flatten(), mode='lines', name=f'Predicted {tickers} Stock Price'))
-
-    # Set the title and axis labels
     fig.update_layout(title=f'{tickers} Stock Price Prediction', xaxis_title='Date', yaxis_title=f'{tickers} Stock Price')
-
     return fig
 
 def handle_train_forecast_button_click(n_clicks, ticker_value, timeframe_value):
@@ -280,7 +273,7 @@ def fetch_data_and_update_graphs(ticker_value, timeframe_value):
             fig_dataY_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Blues"))
             fig_dataY_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (Before COVID)")
 
-            return fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, dash.no_update, f"Data fetched for {ticker_value} for the last {timeframe_value}."
+            return fig_candlestick, dash.no_update, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
         
     
     else:
