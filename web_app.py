@@ -168,23 +168,6 @@ def generate_graphs_from_data(data, ticker_value, timeframe_value):
     # Return all the figures and the message
     return [fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, dash.no_update, f"Data fetched for {ticker_value} for the last {timeframe_value}."]
 
-#def update_forecast(n_clicks, ticker_value):
-#    if n_clicks and ticker_value:
-#        # Fetch the data directly
-#        data = fetch_data(ticker_value)  # Assuming get_data is the function to fetch data
-
-#        x_actual, actual_prices, x_predicted, predicted_prices = train_and_forecast(ticker_value)
-#        print(x_actual)
-#        print(actual_prices)
-#        print(x_predicted)
-#        print(predicted_prices)
-        # Create the figure using the returned data
-#        fig = go.Figure()
-#        fig.add_trace(go.Scatter(x=x_actual, y=actual_prices, mode='lines', name='Actual Prices'))
-#        fig.add_trace(go.Scatter(x=x_predicted, y=predicted_prices, mode='lines', name='Predicted Prices'))
-        
-#        return fig, f"Forecast generated for {ticker_value}."
-#    return dash.no_update, ""
 
 def handle_fetch_button_click(n_clicks, ticker_value, timeframe_value):
     if n_clicks:
