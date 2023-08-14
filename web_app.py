@@ -50,6 +50,8 @@ from plotly.subplots import make_subplots
 #from PyQt5.QtWebEngineWidgets import QWebEnginePage
 from forecast import train_and_forecast
 from get_data import fetch_data
+import sentiment
+
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -78,6 +80,7 @@ app.layout = html.Div([
     dcc.Graph(id='forecast-graph'),
     dcc.Graph(id='daily-return'),
     dcc.Graph(id='histogram'),
+    dcc.Graph(id='sentiment-bullet-chart'),
     dcc.Graph(id='box-plots'),
     dcc.Graph(id='dataX-close-hist'),
     dcc.Graph(id='dataY-close-hist'),
@@ -91,6 +94,7 @@ app.layout = html.Div([
      Output('forecast-graph', 'figure'),
      Output('daily-return', 'figure'),
      Output('histogram', 'figure'),
+     Output('sentiment-bullet-chart', 'figure'),
      Output('box-plots', 'figure'),
      Output('dataX-close-hist', 'figure'),
      Output('dataY-close-hist', 'figure'),
@@ -102,6 +106,11 @@ app.layout = html.Div([
     [State('ticker-input', 'value'),
      State('timeframe-dropdown', 'value')]
 )
+
+def update_bullet_chart(input_value):
+    actual_sentiment = sentiment.analyze_sentiment(input_value)
+    bullet_chart = create_bullet_chart(actual_sentiment, reference_value, target_value)
+    return bullet_chart
 
 def combined_callback(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_value):
     ctx = dash.callback_context
