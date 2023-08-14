@@ -36,7 +36,7 @@ def create_bullet_graph(sentiment_score):
         x=[sentiment_score],
         y=['Sentiment'],
         orientation='h',
-        marker=dict(color='blue')
+        marker=dict(color='black', line=dict(width=3, color='black')),
     ))
     fig.update_layout(
         title="Stock Sentiment",
@@ -48,6 +48,5 @@ def create_bullet_graph(sentiment_score):
     )
 
     return fig
-#sentiment_score = analyze_stock_sentiment(data)  # Assuming 'data' is your stock data DataFrame
-#fig = create_bullet_graph(sentiment_score)
-#fig.show()
+
+
