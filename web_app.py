@@ -51,7 +51,7 @@ from plotly.subplots import make_subplots
 from forecast import train_and_forecast
 from get_data import fetch_data
 import sentiment
-
+from sentiment import analyze_stock_sentiment, create_bullet_graph
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -107,33 +107,30 @@ app.layout = html.Div([
      State('timeframe-dropdown', 'value')]
 )
 
-def update_bullet_chart(input_value):
-    actual_sentiment = sentiment.analyze_sentiment(input_value)
-    bullet_chart = create_bullet_chart(actual_sentiment, reference_value, target_value)
-    return bullet_chart
+
 
 def combined_callback(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_value):
     ctx = dash.callback_context
     if not ctx.triggered:
-        return [dash.no_update] * 10
+        return [dash.no_update] * 11
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if button_id == 'fetch-button' and ticker_value:
         results = fetch_data_and_update_graphs(ticker_value, timeframe_value)
-        if len(results) == 10:  # Ensure fetch_data_and_update_graphs returns 10 items
+        if len(results) == 11:  # Ensure fetch_data_and_update_graphs returns 10 items
             return results
         else:
             raise ValueError("fetch_data_and_update_graphs should return a list of 10 items.")
     elif button_id == 'train-forecast-button' and ticker_value:
         forecast_fig, message = handle_train_forecast_button_click(n_clicks_train, ticker_value, timeframe_value)
-        return [dash.no_update, forecast_fig, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, message]
+        return [dash.no_update, forecast_fig, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, message]
     else:
-        return [dash.no_update] * 10
+        return [dash.no_update] * 11
     
 def generate_graphs_from_data(data, ticker_value, timeframe_value):
     if data is not None:
-            return [dash.no_update] * 10
+            return [dash.no_update] * 11
     data.reset_index(inplace=True)
     data['Date'] = pd.to_datetime(data['Date'])
     data.dropna(inplace=True)
@@ -250,7 +247,8 @@ def fetch_data_and_update_graphs(ticker_value, timeframe_value):
 
             fig_daily_return = px.line(data, x=data.index, y='Daily Return', title='Daily Return', markers=True, line_shape='linear')
             fig_histogram = px.histogram(data, x='Daily Return', nbins=100, color_discrete_sequence=['green'])
-
+            sentiment_score = analyze_stock_sentiment(data)
+            fig_sentiment_bullet = create_bullet_graph(sentiment_score)
             fig_box_plots = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
             fig_box_plots.add_trace(go.Box(y=data["Open"], name="Open Box Plot", boxmean=True), row=1, col=1)
             fig_box_plots.add_trace(go.Box(y=data["High"], name="High Box Plot", boxmean=True), row=1, col=2)
@@ -265,7 +263,7 @@ def fetch_data_and_update_graphs(ticker_value, timeframe_value):
             fig_dataY_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Blues"))
             fig_dataY_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (Before COVID)")
 
-            return fig_candlestick, dash.no_update, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
+            return fig_candlestick, dash.no_update, fig_daily_return, fig_histogram, fig_sentiment_bullet, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
         
     
     else:
