@@ -44,25 +44,19 @@ from dash.dependencies import Input, Output, State
 import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
-#from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QProgressBar, QLabel, QTabWidget
-#from PyQt5.QtCore import QUrl, QThread, pyqtSignal
-#from PyQt5.QtWebEngineWidgets import QWebEngineView
-#from PyQt5.QtWebEngineWidgets import QWebEnginePage
 from forecast import train_and_forecast
 from get_data import fetch_data
-import sentiment
 from sentiment import analyze_stock_sentiment, create_bullet_graph
 from graphs import (generate_candlestick, generate_daily_return, generate_histogram, 
                     generate_box_plots, generate_close_distribution, generate_open_distribution, 
                     generate_heatmap_during_covid, generate_heatmap_before_covid)
-
 
 # Create the Dash app
 app = dash.Dash(__name__)
 
 # Define the app layout
 app.layout = html.Div([
-    dcc.Input(id='ticker-input', type='text', placeholder='Enter Ticker Symbol', style={'display': 'flex', 'justifyContent': 'center', 'width': '40%', 'padding': '12px', }),
+    dcc.Input(id='ticker-input', type='text', placeholder='Enter Ticker Symbol', className='centered-item'),
     dcc.Dropdown(
         id='timeframe-dropdown',
         options=[
@@ -75,23 +69,26 @@ app.layout = html.Div([
             {'label': '20 Years', 'value': '240mo'}
         ],
         value='250mo',
-        style={'width': '40%'}
-    ),
-    html.Button('Fetch Data', id='fetch-button'),
+        style={'width': '50%'}, className='centered-item'),
+    html.Button('Fetch Data', id='fetch-button', className='centered-item'),
     html.Div(id='output-div'),
-    dcc.Graph(id='ohlc'),
+    dcc.Graph(id='ohlc', className='candlestick-chart'),
     html.Button('Train and Forecast', id='train-forecast-button', n_clicks=0),
-    dcc.Graph(id='forecast-graph'),
-    dcc.Graph(id='daily-return'),
-    dcc.Graph(id='histogram'),
-    dcc.Graph(id='sentiment-bullet-chart'),
+    dcc.Graph(id='forecast-graph', className='forecast-graph'),
+    dcc.Graph(id='daily-return', className='daily-return-chart'),
+    html.Div([
+        dcc.Graph(id='histogram', className='histogram'),
+        dcc.Graph(id='sentiment-bullet-chart', className='bullet-chart'),
+    ], className='row-content'),
+    #dcc.Graph(id='histogram', style={'flex': '1'}),
+    #dcc.Graph(id='sentiment-bullet-chart', style={'flex': '1'}),
     dcc.Graph(id='box-plots'),
     dcc.Graph(id='dataX-close-hist'),
     dcc.Graph(id='dataY-close-hist'),
     dcc.Graph(id='dataX-heatmap'),
     dcc.Graph(id='dataY-heatmap'),
 
-])
+], style={'display': 'flex'}, className='centered-container')
 
 @app.callback(
     [Output('ohlc', 'figure'),
@@ -110,8 +107,6 @@ app.layout = html.Div([
     [State('ticker-input', 'value'),
      State('timeframe-dropdown', 'value')]
 )
-
-
 
 def combined_callback(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_value):
     ctx = dash.callback_context

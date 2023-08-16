@@ -1,4 +1,40 @@
 #fetch-button {
-    background-color: blue;
+    background-color: purple;
     color: white;
+}
+
+.centered-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+}
+.row-content {
+    display: flex;
+}
+.centered-item {
+    width: 40%;
+    margin: 10px 0;  /* This adds some vertical spacing between items */
+}
+
+.hidden {
+    display: none;
+}
+
+.candlestick-chart {
+    width: 90%;
+}
+.daily-return-chart {
+    width: 90%;
+}
+.forecast-chart {
+    width: 90%;
+}
+.histogram {
+    width: 70%;
+}
+
+.bullet-chart {
+    width: 20%;
 }
