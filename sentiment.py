@@ -3,7 +3,7 @@ from textblob import TextBlob
 import pandas as pd
 import numpy as np
 
-data = pd.read_csv('TSLA_History.csv')
+#data = pd.read_csv('TSLA_History.csv')
 
 def analyze_stock_sentiment(data):
     data['Momentum'] = data['Close'] - data['Close'].shift(5)
@@ -50,6 +50,6 @@ def create_bullet_graph(sentiment_score):
     )
     return fig
 
-sentiment_score = analyze_stock_sentiment(data)  # Assuming 'data' is your stock data DataFrame
-fig = create_bullet_graph(sentiment_score)
-fig.show()
+#sentiment_score = analyze_stock_sentiment(data)  # Assuming 'data' is your stock data DataFrame
+#fig = create_bullet_graph(sentiment_score)
+#fig.show()

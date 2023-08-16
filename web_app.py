@@ -52,6 +52,10 @@ from forecast import train_and_forecast
 from get_data import fetch_data
 import sentiment
 from sentiment import analyze_stock_sentiment, create_bullet_graph
+from graphs import (generate_candlestick, generate_daily_return, generate_histogram, 
+                    generate_box_plots, generate_close_distribution, generate_open_distribution, 
+                    generate_heatmap_during_covid, generate_heatmap_before_covid)
+
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -130,50 +134,23 @@ def combined_callback(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_va
     
 def generate_graphs_from_data(data, ticker_value, timeframe_value):
     if data is not None:
-            return [dash.no_update] * 11
+        return [dash.no_update] * 11
+
     data.reset_index(inplace=True)
     data['Date'] = pd.to_datetime(data['Date'])
     data.dropna(inplace=True)
     data['Daily Return'] = data['Close'].pct_change()
 
-    # Create the various plots
-    fig_candlestick = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02)
-    fig_candlestick.add_trace(
-        go.Candlestick(
-            x=data.index,
-            open=data['Open'],
-            high=data['High'],
-            low=data['Low'],
-            close=data['Close'],
-            name='OHLC'
-        ),
-        row=1, col=1
-    )
-    fig_candlestick.add_trace(
-        go.Scatter(
-            x=data.index,
-            y=data['Volume'],
-            name='Volume'
-        ),
-        row=2, col=1
-    )
-    fig_candlestick.update_layout(height=500, title_text="Candlestick Chart with Rangeslider")
-    fig_daily_return = px.line(data, x=data.index, y='Daily Return', title='Daily Return', markers=True, line_shape='linear')
-    fig_histogram = px.histogram(data, x='Daily Return', nbins=100, color_discrete_sequence=['green'])
-    fig_box_plots = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
-    fig_box_plots.add_trace(go.Box(y=data["Open"], name="Open Box Plot", boxmean=True), row=1, col=1)
-    fig_box_plots.add_trace(go.Box(y=data["High"], name="High Box Plot", boxmean=True), row=1, col=2)
-    fig_box_plots.update_layout(height=500, title_text="Box Plots")
-    fig_dataX_close_hist = px.histogram(data, x="Close", title="Close Distribution")
-    fig_dataY_close_hist = px.histogram(data, x="Open", title="Open Distribution")
-    fig_dataX_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Reds"))
-    fig_dataX_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (During COVID)")
-    fig_dataY_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Blues"))
-    fig_dataY_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (Before COVID)")
+    fig_candlestick = generate_candlestick(data)
+    fig_daily_return = generate_daily_return(data)
+    fig_histogram = generate_histogram(data)
+    fig_box_plots = generate_box_plots(data)
+    fig_dataX_close_hist = generate_close_distribution(data)
+    fig_dataY_close_hist = generate_open_distribution(data)
+    fig_dataX_heatmap = generate_heatmap_during_covid(data)
+    fig_dataY_heatmap = generate_heatmap_before_covid(data)
 
-    # Return all the figures and the message
     return [fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, dash.no_update, f"Data fetched for {ticker_value} for the last {timeframe_value}."]
-
 
 def handle_fetch_button_click(n_clicks, ticker_value, timeframe_value):
     if n_clicks:
@@ -214,60 +191,26 @@ def handle_train_forecast_button_click(n_clicks, ticker_value, timeframe_value):
 
 def fetch_data_and_update_graphs(ticker_value, timeframe_value):
     data = fetch_data(ticker_value, timeframe_value)
-    #print(data.head())
     if data is not None:
-            data.reset_index(inplace=True)
-            data['Date'] = pd.to_datetime(data['Date'])
-            # Preprocess the data
-            data.dropna(inplace=True)
-            data['Daily Return'] = data['Close'].pct_change()
+        data.reset_index(inplace=True)
+        data['Date'] = pd.to_datetime(data['Date'])
+        data.dropna(inplace=True)
+        data['Daily Return'] = data['Close'].pct_change()
 
-            # Create the various plots
-            fig_candlestick = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02)
-            fig_candlestick.add_trace(
-                go.Candlestick(
-                    x=data.index,
-                    open=data['Open'],
-                    high=data['High'],
-                    low=data['Low'],
-                    close=data['Close'],
-                    name='OHLC'
-                ),
-                row=1, col=1
-            )
-            fig_candlestick.add_trace(
-                go.Scatter(
-                    x=data.index,
-                    y=data['Volume'],
-                    name='Volume'
-                ),
-                row=2, col=1
-            )
-            fig_candlestick.update_layout(height=500, title_text="Candlestick Chart with Rangeslider")
+        fig_candlestick = generate_candlestick(data)
+        fig_daily_return = generate_daily_return(data)
+        fig_histogram = generate_histogram(data)
+        sentiment_score = analyze_stock_sentiment(data)
+        fig_sentiment_bullet = create_bullet_graph(sentiment_score)
+        fig_box_plots = generate_box_plots(data)
+        fig_dataX_close_hist = generate_close_distribution(data)
+        fig_dataY_close_hist = generate_open_distribution(data)
+        fig_dataX_heatmap = generate_heatmap_during_covid(data)
+        fig_dataY_heatmap = generate_heatmap_before_covid(data)
 
-            fig_daily_return = px.line(data, x=data.index, y='Daily Return', title='Daily Return', markers=True, line_shape='linear')
-            fig_histogram = px.histogram(data, x='Daily Return', nbins=100, color_discrete_sequence=['green'])
-            sentiment_score = analyze_stock_sentiment(data)
-            fig_sentiment_bullet = create_bullet_graph(sentiment_score)
-            fig_box_plots = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
-            fig_box_plots.add_trace(go.Box(y=data["Open"], name="Open Box Plot", boxmean=True), row=1, col=1)
-            fig_box_plots.add_trace(go.Box(y=data["High"], name="High Box Plot", boxmean=True), row=1, col=2)
-            fig_box_plots.update_layout(height=500, title_text="Box Plots")
-
-            fig_dataX_close_hist = px.histogram(data, x="Close", title="Close Distribution")
-            fig_dataY_close_hist = px.histogram(data, x="Open", title="Open Distribution")
-
-            fig_dataX_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Reds"))
-            fig_dataX_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (During COVID)")
-
-            fig_dataY_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Blues"))
-            fig_dataY_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (Before COVID)")
-
-            return fig_candlestick, dash.no_update, fig_daily_return, fig_histogram, fig_sentiment_bullet, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
-        
-    
+        return fig_candlestick, dash.no_update, fig_daily_return, fig_histogram, fig_sentiment_bullet, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
     else:
-            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, f"Error fetching data for {ticker_value}.", dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, f"Error fetching data for {ticker_value}.", dash.no_update
 
    
 if __name__ == '__main__':
