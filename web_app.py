@@ -74,7 +74,7 @@ app.layout = html.Div([
     html.Div(id='output-div'),
     dcc.Graph(id='ohlc', className='candlestick-chart'),
     html.Button('Train and Forecast', id='train-forecast-button', n_clicks=0),
-    dcc.Graph(id='forecast-graph', className='forecast-graph'),
+    dcc.Graph(id='forecast-graph', className='forecast-chart'),
     dcc.Graph(id='daily-return', className='daily-return-chart'),
     html.Div([
         dcc.Graph(id='histogram', className='histogram'),
@@ -85,8 +85,12 @@ app.layout = html.Div([
     dcc.Graph(id='box-plots'),
     dcc.Graph(id='dataX-close-hist'),
     dcc.Graph(id='dataY-close-hist'),
-    dcc.Graph(id='dataX-heatmap'),
-    dcc.Graph(id='dataY-heatmap'),
+    html.Div([
+        dcc.Graph(id='dataX-heatmap'),
+        dcc.Graph(id='dataY-heatmap'),
+    ], className='row-content'),
+    #dcc.Graph(id='dataX-heatmap'),
+    #dcc.Graph(id='dataY-heatmap'),
 
 ], style={'display': 'flex'}, className='centered-container')
 
