@@ -12,6 +12,7 @@
 }
 .row-content {
     display: flex;
+    width: 100%;
 }
 .centered-item {
     width: 40%;
@@ -23,18 +24,30 @@
 }
 
 .candlestick-chart {
+    flex: none;
     width: 90%;
 }
 .daily-return-chart {
+    flex: none;
     width: 90%;
 }
 .forecast-chart {
+    flex: none;
     width: 90%;
 }
 .histogram {
-    width: 70%;
+    flex: none;
+    width: 50%
 }
-
 .bullet-chart {
+    flex: none;
     width: 20%;
+}
+.box-plots {
+    flex: none;
+    width: 90%;
+}
+.histogram {
+    flex: none;
+    width: 90%;
 }

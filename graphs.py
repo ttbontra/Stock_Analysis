@@ -1,5 +1,8 @@
 import plotly.graph_objects as go
 import plotly.express as px
+import pandas as pd
+import yfinance as yf  
+
 from plotly.subplots import make_subplots
 
 def generate_candlestick(data):
@@ -35,11 +38,39 @@ def generate_histogram(data):
     return fig_histogram
 
 def generate_box_plots(data):
-    fig_box_plots = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
+    fig_box_plots = make_subplots(rows=1, cols=4, shared_xaxes=True, vertical_spacing=0.02)
     fig_box_plots.add_trace(go.Box(y=data["Open"], name="Open Box Plot", boxmean=True), row=1, col=1)
     fig_box_plots.add_trace(go.Box(y=data["High"], name="High Box Plot", boxmean=True), row=1, col=2)
+    fig_box_plots.add_trace(go.Box(y=data["Low"], name="Low Box Plot", boxmean=True), row=1, col=3)
+    fig_box_plots.add_trace(go.Box(y=data["Close"], name="Close Box Plot", boxmean=True), row=1, col=4)
     fig_box_plots.update_layout(height=500, title_text="Box Plots")
     return fig_box_plots
+
+def generate_2box_plots(data):
+    fig_box_plots = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
+    fig_box_plots.add_trace(go.Box(y=data["Low"], name="Low Box Plot", boxmean=True), row=1, col=1)
+    fig_box_plots.add_trace(go.Box(y=data["Close"], name="Close Box Plot", boxmean=True), row=1, col=2)
+    fig_box_plots.update_layout(height=500, title_text="Box Plots")
+    return fig_box_plots
+
+def generate_combined_distribution(data):
+    # Create the subplots layout
+    fig_combined_hist = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.02)
+
+    # Close Distribution
+    close_hist = px.histogram(data, x="Close", title="Close Distribution")
+    for trace in close_hist.data:
+        fig_combined_hist.add_trace(trace, row=1, col=1)
+
+    # Open Distribution
+    open_hist = px.histogram(data, x="Open", title="Open Distribution")
+    for trace in open_hist.data:
+        fig_combined_hist.add_trace(trace, row=1, col=2)
+
+    # Update layout
+    fig_combined_hist.update_layout(height=500, title_text="Close and Open Distributions")
+
+    return fig_combined_hist
 
 def generate_close_distribution(data):
     fig_dataX_close_hist = px.histogram(data, x="Close", title="Close Distribution")
@@ -58,3 +89,4 @@ def generate_heatmap_before_covid(data):
     fig_dataY_heatmap = go.Figure(data=go.Heatmap(z=data.corr(), x=data.columns, y=data.columns, colorscale="Blues"))
     fig_dataY_heatmap.update_layout(title="Heatmap displaying the relationship between the features of the data (Before COVID)")
     return fig_dataY_heatmap
+

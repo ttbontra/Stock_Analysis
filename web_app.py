@@ -48,8 +48,8 @@ from forecast import train_and_forecast
 from get_data import fetch_data
 from sentiment import analyze_stock_sentiment, create_bullet_graph
 from graphs import (generate_candlestick, generate_daily_return, generate_histogram, 
-                    generate_box_plots, generate_close_distribution, generate_open_distribution, 
-                    generate_heatmap_during_covid, generate_heatmap_before_covid)
+                    generate_box_plots, generate_2box_plots, generate_close_distribution, generate_open_distribution, 
+                    generate_heatmap_during_covid, generate_heatmap_before_covid, generate_combined_distribution)
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -82,9 +82,10 @@ app.layout = html.Div([
     ], className='row-content'),
     #dcc.Graph(id='histogram', style={'flex': '1'}),
     #dcc.Graph(id='sentiment-bullet-chart', style={'flex': '1'}),
-    dcc.Graph(id='box-plots'),
-    dcc.Graph(id='dataX-close-hist'),
-    dcc.Graph(id='dataY-close-hist'),
+    dcc.Graph(id='box-plots', className='box-plots'),
+    dcc.Graph(id='combined-hist', className='histogram'),
+    #dcc.Graph(id='dataX-close-hist'),
+    #dcc.Graph(id='dataY-close-hist'),
     html.Div([
         dcc.Graph(id='dataX-heatmap'),
         dcc.Graph(id='dataY-heatmap'),
@@ -101,8 +102,9 @@ app.layout = html.Div([
      Output('histogram', 'figure'),
      Output('sentiment-bullet-chart', 'figure'),
      Output('box-plots', 'figure'),
-     Output('dataX-close-hist', 'figure'),
-     Output('dataY-close-hist', 'figure'),
+     Output('combined-hist', 'figure'),
+     #Output('dataX-close-hist', 'figure'),
+     #Output('dataY-close-hist', 'figure'),
      Output('dataX-heatmap', 'figure'),
      Output('dataY-heatmap', 'figure'),
      Output('output-div', 'children')],
@@ -112,28 +114,29 @@ app.layout = html.Div([
      State('timeframe-dropdown', 'value')]
 )
 
+
 def combined_callback(n_clicks_fetch, n_clicks_train, ticker_value, timeframe_value):
     ctx = dash.callback_context
     if not ctx.triggered:
-        return [dash.no_update] * 11
+        return [dash.no_update] * 10
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if button_id == 'fetch-button' and ticker_value:
         results = fetch_data_and_update_graphs(ticker_value, timeframe_value)
-        if len(results) == 11:  # Ensure fetch_data_and_update_graphs returns 10 items
+        if len(results) == 10:  # Ensure fetch_data_and_update_graphs returns 10 items
             return results
         else:
-            raise ValueError("fetch_data_and_update_graphs should return a list of 10 items.")
+            raise ValueError("fetch_data_and_update_graphs should return a list of 11 items.")
     elif button_id == 'train-forecast-button' and ticker_value:
         forecast_fig, message = handle_train_forecast_button_click(n_clicks_train, ticker_value, timeframe_value)
-        return [dash.no_update, forecast_fig, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, message]
+        return [dash.no_update, forecast_fig, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update]
     else:
-        return [dash.no_update] * 11
+        return [dash.no_update] * 10
     
 def generate_graphs_from_data(data, ticker_value, timeframe_value):
     if data is not None:
-        return [dash.no_update] * 11
+        return [dash.no_update] * 10
 
     data.reset_index(inplace=True)
     data['Date'] = pd.to_datetime(data['Date'])
@@ -144,12 +147,14 @@ def generate_graphs_from_data(data, ticker_value, timeframe_value):
     fig_daily_return = generate_daily_return(data)
     fig_histogram = generate_histogram(data)
     fig_box_plots = generate_box_plots(data)
-    fig_dataX_close_hist = generate_close_distribution(data)
-    fig_dataY_close_hist = generate_open_distribution(data)
+    fig_combined_hist = generate_combined_distribution(data)
+    #fig_dataX_close_hist = generate_close_distribution(data)
+    #ig_dataY_close_hist = generate_open_distribution(data)
     fig_dataX_heatmap = generate_heatmap_during_covid(data)
     fig_dataY_heatmap = generate_heatmap_before_covid(data)
 
-    return [fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, dash.no_update, f"Data fetched for {ticker_value} for the last {timeframe_value}."]
+
+    return [fig_candlestick, fig_daily_return, fig_histogram, fig_box_plots, fig_combined_hist, fig_dataX_heatmap, fig_dataY_heatmap, dash.no_update, f"Data fetched for {ticker_value} for the last {timeframe_value}."]
 
 def handle_fetch_button_click(n_clicks, ticker_value, timeframe_value):
     if n_clicks:
@@ -202,14 +207,17 @@ def fetch_data_and_update_graphs(ticker_value, timeframe_value):
         sentiment_score = analyze_stock_sentiment(data)
         fig_sentiment_bullet = create_bullet_graph(sentiment_score)
         fig_box_plots = generate_box_plots(data)
-        fig_dataX_close_hist = generate_close_distribution(data)
-        fig_dataY_close_hist = generate_open_distribution(data)
+        fig_combined_hist = generate_combined_distribution(data)
+        #fig_dataX_close_hist = generate_close_distribution(data)
+        #fig_dataY_close_hist = generate_open_distribution(data)
         fig_dataX_heatmap = generate_heatmap_during_covid(data)
         fig_dataY_heatmap = generate_heatmap_before_covid(data)
 
-        return fig_candlestick, dash.no_update, fig_daily_return, fig_histogram, fig_sentiment_bullet, fig_box_plots, fig_dataX_close_hist, fig_dataY_close_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
+
+
+        return fig_candlestick, dash.no_update, fig_daily_return, fig_histogram, fig_sentiment_bullet, fig_box_plots, fig_combined_hist, fig_dataX_heatmap, fig_dataY_heatmap, f"Data fetched for {ticker_value} for the last {timeframe_value}."
     else:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, f"Error fetching data for {ticker_value}.", dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, f"Error fetching data for {ticker_value}.", dash.no_update
 
    
 if __name__ == '__main__':

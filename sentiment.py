@@ -41,8 +41,8 @@ def create_bullet_graph(sentiment_score):
         )
 
     fig.update_layout(
-        title="Stock Sentiment",
-        xaxis=dict(range=[-1, 1], title="Sentiment Score"),
+        title="Momentum Sentiment",
+        xaxis=dict(range=[-1, 1], title="Sentiment Score of Momentum"),
         yaxis=dict(showticklabels=False),
         showlegend=False,
         width=500,
