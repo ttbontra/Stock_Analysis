@@ -37,7 +37,7 @@
 }
 .histogram {
     flex: none;
-    width: 50%
+    width: 70%
 }
 .bullet-chart {
     flex: none;
@@ -47,7 +47,7 @@
     flex: none;
     width: 90%;
 }
-.histogram {
+.comb-histogram {
     flex: none;
     width: 90%;
 }

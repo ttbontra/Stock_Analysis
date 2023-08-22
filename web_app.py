@@ -83,7 +83,7 @@ app.layout = html.Div([
     #dcc.Graph(id='histogram', style={'flex': '1'}),
     #dcc.Graph(id='sentiment-bullet-chart', style={'flex': '1'}),
     dcc.Graph(id='box-plots', className='box-plots'),
-    dcc.Graph(id='combined-hist', className='histogram'),
+    dcc.Graph(id='combined-hist', className='comb-histogram'),
     #dcc.Graph(id='dataX-close-hist'),
     #dcc.Graph(id='dataY-close-hist'),
     html.Div([
