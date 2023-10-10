@@ -18,10 +18,8 @@ def fetch_data(ticker_symbol, timeframe='1y'):
         ticker = yf.Ticker(ticker_symbol)
         df = ticker.history(period=timeframe)
         df = df.drop(columns=[col for col in ['Dividends', 'Stock Splits'] if col in df.columns])
-
         # Add ticker symbol as a new column
         df['ticker'] = ticker_symbol
-
         return df
 
     except Exception as e:
@@ -33,7 +31,19 @@ def save_to_database(df):
     cursor = cnx.cursor()
 
     for _, row in df.iterrows():
-        date, open_price, high, low, close_price, volume, ticker = row
+        date_str = row.get('Date', None)
+        if date_str:
+            date = date_str.split(' ')[0]  # Extract just the date portion
+        else:
+            print(f"Missing date for row: {row}")
+            continue
+        open_price = row.get('Open', None)
+        high = row.get('High', None)
+        low = row.get('Low', None)
+        close_price = row.get('Close', None)
+        volume = row.get('Volume', None)
+        ticker = row.get('ticker', None)
+
         insert_query = ("""
             INSERT INTO stock_data (ticker, date, open_price, high, low, close_price, volume) 
             VALUES (%s, %s, %s, %s, %s, %s, %s) 
@@ -44,14 +54,19 @@ def save_to_database(df):
             close_price=VALUES(close_price), 
             volume=VALUES(volume)
         """)
-        cursor.execute(insert_query, (ticker, date, open_price, high, low, close_price, volume))
+
+        try:
+            cursor.execute(insert_query, (ticker, date, open_price, high, low, close_price, volume))
+        except mysql.connector.DatabaseError as e:
+            print(f"Error inserting row: {row}")
+            print(f"Error message: {e}")
 
     cnx.commit()
     cursor.close()
     cnx.close()
 
 def job():
-    with open('file_names.txt', 'r') as f:
+    with open('tickers.txt', 'r') as f:
         tickers = [line.strip() for line in f]
 
     for ticker in tickers:
@@ -61,8 +76,11 @@ def job():
         time.sleep(5)  # Avoid hitting rate limits
 
 # Schedule the job to run at the end of every day (e.g., 11:59 PM)
-schedule.every().day.at("23:59").do(job)
+schedule.every().day.at("14:20").do(job)
 
 while True:
     schedule.run_pending()
-    time.sleep(60)  # Check every minute
+    time.sleep(60)
+
+
+
