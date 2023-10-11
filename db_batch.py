@@ -24,41 +24,48 @@ def fetch_data(ticker_symbol, timeframe='1y'):
 
     except Exception as e:
         print(f"Error fetching data for {ticker_symbol}: {e}")
+        print(df)
         return None
 
 def save_to_database(df):
     cnx = mysql.connector.connect(**config)
     cursor = cnx.cursor()
 
-    for _, row in df.iterrows():
-        date_str = row.get('Date', None)
-        if date_str:
-            date = date_str.split(' ')[0]  # Extract just the date portion
-        else:
-            print(f"Missing date for row: {row}")
+    for index, row in df.iterrows():
+        date_str = str(index)
+        date = date_str.split(' ')[0]  # Extract just the date portion
+        
+        # Ensure the data types are as expected
+        try:
+            open_price = round(float(row['Open']), 2)
+            high = round(float(row['High']), 2)
+            low = round(float(row['Low']), 2)
+            close_price = round(float(row['Close']), 2)
+            volume = int(row.get('Volume', None))
+            ticker = str(row['ticker'])
+        except Exception as e:
+            print(f"Error casting data: {e}")
+            print(row)
             continue
-        open_price = row.get('Open', None)
-        high = row.get('High', None)
-        low = row.get('Low', None)
-        close_price = row.get('Close', None)
-        volume = row.get('Volume', None)
+        
         ticker = row.get('ticker', None)
 
         insert_query = ("""
             INSERT INTO stock_data (ticker, date, open_price, high, low, close_price, volume) 
             VALUES (%s, %s, %s, %s, %s, %s, %s) 
             ON DUPLICATE KEY UPDATE 
-            open_price=VALUES(open_price), 
-            high=VALUES(high), 
-            low=VALUES(low), 
-            close_price=VALUES(close_price), 
-            volume=VALUES(volume)
+            open_price=%s, 
+            high=%s, 
+            low=%s, 
+            close_price=%s, 
+            volume=%s
         """)
 
         try:
-            cursor.execute(insert_query, (ticker, date, open_price, high, low, close_price, volume))
+            cursor.execute(insert_query, (ticker, date, open_price, high, low, close_price, volume, open_price, high, low, close_price, volume))
         except mysql.connector.DatabaseError as e:
             print(f"Error inserting row: {row}")
+            print(f"Values: Ticker={ticker}, Date={date}, Open={open_price}, High={high}, Low={low}, Close={close_price}, Volume={volume}")
             print(f"Error message: {e}")
 
     cnx.commit()
@@ -76,7 +83,7 @@ def job():
         time.sleep(5)  # Avoid hitting rate limits
 
 # Schedule the job to run at the end of every day (e.g., 11:59 PM)
-schedule.every().day.at("14:20").do(job)
+schedule.every().day.at("16:33").do(job)
 
 while True:
     schedule.run_pending()
