@@ -87,14 +87,7 @@ def train_and_forecast(ticker_symbol):
     predicted_stock_price = model.predict(X_test)
     predicted_stock_price = sc.inverse_transform(predicted_stock_price)
     num_prediction = 30  # Number of future predictions
-    #plt.figure(figsize=(10, 6))
-    #plt.plot(test_stock_data_processed, color='blue', label='Actual Apple Stock Price')
-    #plt.plot(predicted_stock_price, color='red', label='Predicted Apple Stock Price')
-    #plt.title('SPY Stock Price Prediction')
-    #plt.xlabel('Date')
-    #plt.ylabel('SPY Stock Price')
-    #plt.legend()
-    #plt.show()
+   
     def predict(num_prediction, model, input_data):
         prediction_list = input_data[-1].reshape(-1)  # Take the last sequence from input_data
         
