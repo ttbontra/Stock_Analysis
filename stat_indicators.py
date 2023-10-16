@@ -44,7 +44,7 @@ def insert_indicators_to_db(ticker, df):
 
         # Extract indicators
         rsi = row['momentum_rsi']
-        macd = row['trend_macd']
+        macd = round(row['trend_macd'], 4)
         bollinger_upper = row['volatility_bbm']
         bollinger_lower = row['volatility_bbl']
         ppo = row['momentum_ppo']
