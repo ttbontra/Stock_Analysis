@@ -7,6 +7,39 @@ from datetime import datetime as dt
 from time import time
 from keras.models import load_model
 from get_data import fetch_data
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from statsmodels.tsa.arima.model import ARIMA
+import xgboost as xgb
+
+def linear_regression_forecast(train, test):
+    regressor = LinearRegression()
+    regressor.fit(np.arange(len(train)).reshape(-1, 1), train)
+    predictions = regressor.predict(np.arange(len(train), len(train)+len(test)).reshape(-1, 1))
+    return predictions
+
+def arima_forecast(train, test):
+    model = ARIMA(train, order=(5, 1, 0))
+    model_fit = model.fit(disp=0)
+    predictions, _, _ = model_fit.forecast(steps=len(test))
+    return predictions
+
+def random_forest_forecast(train, test):
+    regressor = RandomForestRegressor(n_estimators=100, random_state=0)
+    regressor.fit(np.arange(len(train)).reshape(-1, 1), train)
+    predictions = regressor.predict(np.arange(len(train), len(train)+len(test)).reshape(-1, 1))
+    return predictions
+
+def xgboost_forecast(train, test):
+    train_data = xgb.DMatrix(np.arange(len(train)).reshape(-1, 1), label=train)
+    test_data = xgb.DMatrix(np.arange(len(train), len(train)+len(test)).reshape(-1, 1))
+    param = {'max_depth': 5, 'eta': 0.1, 'objective': 'reg:squarederror'}
+    num_round = 100
+    bst = xgb.train(param, train_data, num_round)
+    predictions = bst.predict(test_data)
+    return predictions
+
 
 def train_and_forecast(ticker_symbol):
     model = load_model('stock_prediction.keras')

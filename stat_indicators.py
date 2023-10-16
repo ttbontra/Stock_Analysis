@@ -45,11 +45,12 @@ def insert_indicators_to_db(ticker, df):
         # Extract indicators
         rsi = row['momentum_rsi']
         macd = round(row['trend_macd'], 4)
-        bollinger_upper = row['volatility_bbm']
-        bollinger_lower = row['volatility_bbl']
-        ppo = row['momentum_ppo']
-        stochastic_oscillator = row['momentum_stoch']
-        roc = row['momentum_roc']
+        bollinger_upper = round(row['volatility_bbm'], 4)
+        bollinger_lower = round(row['volatility_bbl'], 4)
+        ppo = round(row['momentum_ppo'], 4)
+        stochastic_oscillator = round(row['momentum_stoch'], 4)
+        roc = round(row['momentum_roc'], 4)
+        #z_score = round(row['volatility_kcc'], 4)
 
         insert_query = """
             INSERT INTO stock_indicators (ticker, date, rsi, macd, bollinger_upper, bollinger_lower, ppo, stochastic_oscillator, roc)
@@ -62,6 +63,7 @@ def insert_indicators_to_db(ticker, df):
             ppo=%s, 
             stochastic_oscillator=%s, 
             roc=%s
+            
         """
         data_to_insert = (ticker, date, rsi, macd, bollinger_upper, bollinger_lower, ppo, stochastic_oscillator, roc, rsi, macd, bollinger_upper, bollinger_lower, ppo, stochastic_oscillator, roc)
 
