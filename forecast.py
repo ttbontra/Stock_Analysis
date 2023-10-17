@@ -188,7 +188,7 @@ def train_and_forecast(ticker_symbol):
     slope = round(float((predicted_stock_price[-1] - predicted_stock_price[0]) / len(predicted_stock_price)), 4)
     start_date = test_stock_data['Date'].iloc[-1]
     forecast_dates = pd.bdate_range(start=start_date, periods=num_prediction+1)[1:]
-    #rounded_price = round(float(predicted_stock_price[i]), 4)
+    
 
     for i in range(num_prediction):
         forecast_date = forecast_dates[i].strftime('%Y-%m-%d')
