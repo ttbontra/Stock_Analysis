@@ -12,6 +12,35 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from statsmodels.tsa.arima.model import ARIMA
 import xgboost as xgb
+import mysql.connector
+
+config = {
+    'user': 'root',
+    'password': 'stable',
+    'host': '127.0.0.1',
+    'database': 'stocks',
+    'raise_on_warnings': True
+}
+
+def insert_into_db(ticker, forecast_date, predicted_price, model_name, slope=None):
+    cnx = mysql.connector.connect(**config)
+    cursor = cnx.cursor()
+
+    insert_query = """
+    INSERT INTO stock_forecast (ticker, date, predicted_price, model_name, slope)
+    VALUES (%s, %s, %s, %s, %s);
+    """
+
+    try:
+        cursor.execute(insert_query, (ticker, forecast_date, predicted_price, model_name, slope))
+        cnx.commit()
+    except mysql.connector.Error as err:
+        print(f"Error inserting prediction into stock_forecast: {err}")
+
+    cursor.close()
+    cnx.close()
+
+
 
 def linear_regression_forecast(train, test):
     regressor = LinearRegression()
@@ -119,8 +148,10 @@ def train_and_forecast(ticker_symbol):
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
     predicted_stock_price = model.predict(X_test)
     predicted_stock_price = sc.inverse_transform(predicted_stock_price)
+    
     num_prediction = 30  # Number of future predictions
-   
+    
+
     def predict(num_prediction, model, input_data):
         prediction_list = input_data[-1].reshape(-1)  # Take the last sequence from input_data
         
@@ -154,9 +185,18 @@ def train_and_forecast(ticker_symbol):
     predicted_stock_price = model.predict(test_features)
     predicted_stock_price = predict(num_prediction, model, test_features)
     predicted_stock_price = sc.inverse_transform(predicted_stock_price.reshape(-1, 1))
+    slope = float((predicted_stock_price[-1] - predicted_stock_price[0]) / len(predicted_stock_price))
+    start_date = test_stock_data['Date'].iloc[-1]
+    forecast_dates = pd.bdate_range(start=start_date, periods=num_prediction+1)[1:]
+    rounded_price = round(float(predicted_stock_price[i]), 4)
+
+    for i in range(num_prediction):
+        forecast_date = forecast_dates[i].strftime('%Y-%m-%d')
+        insert_into_db(ticker_symbol, forecast_date, float(predicted_stock_price[i]), 'NeuralNetwork', slope)
     print(predicted_stock_price.shape)
     print(test_stock_data_processed.shape)
     x_actual = np.arange(test_stock_data_processed.shape[0])
     x_predicted = np.arange(test_stock_data_processed.shape[0], test_stock_data_processed.shape[0] + predicted_stock_price.shape[0])
+    print(f"Inserting: Date={forecast_date}, Predicted Price={rounded_price}, Slope={slope}")
 
     return x_actual, test_stock_data_processed, x_predicted, predicted_stock_price
