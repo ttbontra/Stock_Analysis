@@ -185,14 +185,17 @@ def train_and_forecast(ticker_symbol):
     predicted_stock_price = model.predict(test_features)
     predicted_stock_price = predict(num_prediction, model, test_features)
     predicted_stock_price = sc.inverse_transform(predicted_stock_price.reshape(-1, 1))
-    slope = float((predicted_stock_price[-1] - predicted_stock_price[0]) / len(predicted_stock_price))
+    slope = round(float((predicted_stock_price[-1] - predicted_stock_price[0]) / len(predicted_stock_price)), 4)
     start_date = test_stock_data['Date'].iloc[-1]
     forecast_dates = pd.bdate_range(start=start_date, periods=num_prediction+1)[1:]
-    rounded_price = round(float(predicted_stock_price[i]), 4)
+    #rounded_price = round(float(predicted_stock_price[i]), 4)
 
     for i in range(num_prediction):
         forecast_date = forecast_dates[i].strftime('%Y-%m-%d')
-        insert_into_db(ticker_symbol, forecast_date, float(predicted_stock_price[i]), 'NeuralNetwork', slope)
+        rounded_price = round(float(predicted_stock_price[i]), 4)
+        insert_into_db(ticker_symbol, forecast_date, rounded_price, 'NeuralNetwork', slope)
+        print(f"Inserting: Date={forecast_date}, Predicted Price={rounded_price}, Slope={slope}")
+    
     print(predicted_stock_price.shape)
     print(test_stock_data_processed.shape)
     x_actual = np.arange(test_stock_data_processed.shape[0])
