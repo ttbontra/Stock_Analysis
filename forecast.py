@@ -40,7 +40,34 @@ def insert_into_db(ticker, forecast_date, predicted_price, model_name, slope=Non
     cursor.close()
     cnx.close()
 
+def forecast_with_model(train, test, model_name):
+    if model_name == "LinearRegression":
+        return linear_regression_forecast(train, test)
+    elif model_name == "ARIMA":
+        return arima_forecast(train, test)
+    elif model_name == "RandomForest":
+        return random_forest_forecast(train, test)
+    elif model_name == "XGBoost":
+        return xgboost_forecast(train, test)
+    elif model_name == "NeuralNetwork":
+        # The LSTM neural network model prediction code
+        pass
+    else:
+        print(f"Unknown model: {model_name}")
+        return None
 
+def visualize_results(x_actual, actual_prices, model_results):
+    plt.figure(figsize=(14, 7))
+    plt.plot(x_actual, actual_prices, color="black", label="Actual Prices")
+    
+    for model_name, x_predicted, predicted_prices in model_results:
+        plt.plot(x_predicted, predicted_prices, label=f"Predicted by {model_name}")
+
+    plt.title("Stock Price Forecasting Comparison")
+    plt.xlabel("Days")
+    plt.ylabel("Stock Price")
+    plt.legend()
+    plt.show()
 
 def linear_regression_forecast(train, test):
     regressor = LinearRegression()
@@ -69,6 +96,41 @@ def xgboost_forecast(train, test):
     predictions = bst.predict(test_data)
     return predictions
 
+def create_lstm_model(input_shape):
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.LSTM(units=50, return_sequences=True, input_shape=input_shape),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.LSTM(units=50, return_sequences=True),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.LSTM(units=50, return_sequences=True),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.LSTM(units=50),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(units=1)
+    ])
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    return model
+
+def train_lstm_model(model, features, labels, epochs=50, batch_size=34):
+    history = model.fit(features, labels, epochs=epochs, batch_size=batch_size, verbose=1)
+    model.save('stock_prediction.keras')
+
+
+def fetch_and_prepare_data(ticker_symbol, timeframe='120mo'):
+    stock_data = fetch_data(ticker_symbol, timeframe)
+    if stock_data is None:
+        return None
+
+    stock_data.reset_index(inplace=True)
+    stock_data['Date'] = pd.to_datetime(stock_data['Date'])
+
+    start_date = stock_data['Date'].min().tz_localize(None)
+    end_date = stock_data['Date'].max().tz_localize(None)
+
+    all_bussinessdays = pd.date_range(start=start_date, end=end_date, freq='B')
+    close_prices = stock_data.reindex(all_bussinessdays)
+    close_prices = stock_data.fillna(method='ffill')
+    return close_prices
 
 def train_and_forecast(ticker_symbol):
     model = load_model('stock_prediction.keras')
