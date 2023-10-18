@@ -41,37 +41,45 @@ for ticker in tickers:
     df = pd.read_sql(query, cnx)
     cnx.close()
 
-    # ... [Rest of the processing and training code remains same] ...
+    # Feature engineering: Using lagged prices as features
     for i in range(1, 6):  # Using past 5 days prices
         df[f'lag_{i}'] = df['close_price'].shift(i)
 
-# Target: 1 if price went up, 0 if it went down or remained the same
+    # Target: 1 if price went up, 0 if it went down or remained the same
     df['target'] = (df['close_price'] > df['close_price'].shift(1)).astype(int)
 
-# Drop missing values (first 5 rows will have NaN because of lags)
+    # Drop missing values (first 5 rows will have NaN because of lags)
     df.dropna(inplace=True)
-
-# Split data
+    if df.empty:
+        print(f"Skipping {ticker} due to insufficient data.")
+        continue
+    # Split data
     X = df[['lag_1', 'lag_2', 'lag_3', 'lag_4', 'lag_5']]
     y = df['target']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
-# Standardize the data (important for SVM and KNN)
+    # Check for only one class in y_train
+    if y_train.nunique() <= 1:
+        print(f"Skipping {ticker} as it has only {y_train.nunique()} unique class in the training set.")
+        continue
+
+    # Standardize the data (important for SVM and KNN)
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
 
-# SVM
+    # SVM
     clf_svm = SVC()
     clf_svm.fit(X_train, y_train)
     y_pred_svm = clf_svm.predict(X_test)
-    print("SVM Accuracy:", accuracy_score(y_test, y_pred_svm))
+    print(f"{ticker} - SVM Accuracy:", accuracy_score(y_test, y_pred_svm))
 
-# KNN
-    clf_knn = KNeighborsClassifier(n_neighbors=5)
+    # KNN
+    min_neighbors = min(5, len(X_train))
+    clf_knn = KNeighborsClassifier(n_neighbors=min_neighbors)
     clf_knn.fit(X_train, y_train)
     y_pred_knn = clf_knn.predict(X_test)
-    print("KNN Accuracy:", accuracy_score(y_test, y_pred_knn))
+    print(f"{ticker} - KNN Accuracy:", accuracy_score(y_test, y_pred_knn))
 
     # Storing classifier results
     most_recent_date = df['date'].max()
