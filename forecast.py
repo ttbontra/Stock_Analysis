@@ -14,6 +14,8 @@ from statsmodels.tsa.arima.model import ARIMA
 import xgboost as xgb
 import mysql.connector
 
+
+
 config = {
     'user': 'root',
     'password': 'stable',
@@ -39,6 +41,36 @@ def insert_into_db(ticker, forecast_date, predicted_price, model_name, slope=Non
 
     cursor.close()
     cnx.close()
+
+# ---------------- Data Preparation ------------------
+
+def fetch_and_prepare_data(ticker_symbol, timeframe='120mo'):
+    stock_data = fetch_data(ticker_symbol, timeframe)
+    if stock_data is None:
+        return None
+
+    stock_data.reset_index(inplace=True)
+    stock_data['Date'] = pd.to_datetime(stock_data['Date'])
+
+    start_date = stock_data['Date'].min().tz_localize(None)
+    end_date = stock_data['Date'].max().tz_localize(None)
+
+    all_bussinessdays = pd.date_range(start=start_date, end=end_date, freq='B')
+    close_prices = stock_data.reindex(all_bussinessdays)
+    close_prices = stock_data.fillna(method='ffill')
+    return close_prices
+
+def save_predictions_to_db(ticker_symbol, predicted_stock_price, test_stock_data):
+    slope = float((predicted_stock_price[-1] - predicted_stock_price[0]) / len(predicted_stock_price))
+    start_date = test_stock_data['Date'].iloc[-1]
+    forecast_dates = pd.bdate_range(start=start_date, periods=num_prediction+1)[1:]
+
+    for i in range(len(predicted_stock_price)):
+        forecast_date = forecast_dates[i].strftime('%Y-%m-%d')
+        rounded_price = round(float(predicted_stock_price[i]), 4)
+        insert_into_db(ticker_symbol, forecast_date, float(predicted_stock_price[i]), 'NeuralNetwork', slope)
+        print(f"Inserting: Date={forecast_date}, Predicted Price={rounded_price}, Slope={slope}")
+
 
 def forecast_with_model(train, test, model_name):
     if model_name == "LinearRegression":
@@ -265,3 +297,8 @@ def train_and_forecast(ticker_symbol):
     print(f"Inserting: Date={forecast_date}, Predicted Price={rounded_price}, Slope={slope}")
 
     return x_actual, test_stock_data_processed, x_predicted, predicted_stock_price
+
+def make_predictions(model, test_features, num_prediction):
+    predicted_stock_price = model.predict(test_features)
+    predicted_stock_price = predict(num_prediction, model, test_features)
+    return predicted_stock_price

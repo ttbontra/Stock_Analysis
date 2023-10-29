@@ -1,45 +1,7 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import tensorflow as tf
-from sklearn.preprocessing import MinMaxScaler
-from datetime import datetime as dt
-from time import time
-from keras.models import load_model
-from get_data import fetch_data
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
-from statsmodels.tsa.arima.model import ARIMA
-import xgboost as xgb
-import mysql.connector
+I would like to add the following forecasting.py script "" to the gui
 
+error inserting row for spy on date 2021-09-12: 1265 Data truncated for column 'macd' at row 1  
 
-config = {
-    'user': 'root',
-    'password': 'stable',
-    'host': '127.0.0.1',
-    'database': 'stocks',
-    'raise_on_warnings': True
-}
-
-def insert_into_db(ticker, forecast_date, predicted_price, model_name, slope=None):
-    cnx = mysql.connector.connect(**config)
-    cursor = cnx.cursor()
-
-    insert_query = """
-    INSERT INTO stock_forecast (ticker, date, predicted_price, model_name, slope)
-    VALUES (%s, %s, %s, %s, %s);
-    """
-
-    try:
-        cursor.execute(insert_query, (ticker, forecast_date, predicted_price, model_name, slope))
-        cnx.commit()
-    except mysql.connector.Error as err:
-        print(f"Error inserting prediction into stock_forecast: {err}")
-
-    cursor.close()
-    cnx.close()
 
 # ---------------- Data Preparation ------------------
 
