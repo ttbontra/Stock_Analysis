@@ -4,9 +4,13 @@ import pandas as pd
 import yfinance as yf  
 import mysql.connector
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 from plotly.subplots import make_subplots
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def generate_candlestick(data):
     fig_candlestick = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02)
@@ -94,13 +98,12 @@ def generate_heatmap_before_covid(data):
     return fig_dataY_heatmap
 
 config = {
-    'user': 'root',
-    'password': 'stable',
-    'host': '127.0.0.1',
-    'database': 'stocks',
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'database': os.getenv('DB_DATABASE'),
     'raise_on_warnings': True
 }
-
 # Connect to the database and fetch data
 cnx = mysql.connector.connect(**config)
 query = "SELECT * FROM classifiers"  # Adjust if the table name is different

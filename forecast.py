@@ -13,14 +13,16 @@ from sklearn.ensemble import RandomForestRegressor
 from statsmodels.tsa.arima.model import ARIMA
 import xgboost as xgb
 import mysql.connector
+import os
+from dotenv import load_dotenv
 
 
-
+load_dotenv()
 config = {
-    'user': 'root',
-    'password': 'stable',
-    'host': '127.0.0.1',
-    'database': 'stocks',
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'database': os.getenv('DB_DATABASE'),
     'raise_on_warnings': True
 }
 

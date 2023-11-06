@@ -3,16 +3,19 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Database configuration
 config = {
-    'user': 'root',
-    'password': 'stable',
-    'host': '127.0.0.1',
-    'database': 'stocks',
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'database': os.getenv('DB_DATABASE'),
     'raise_on_warnings': True
 }
-
 # Fetch data from database
 cnx = mysql.connector.connect(**config)
 query = "SELECT * FROM stock_indicators WHERE ticker='AAPL' ORDER BY date"
